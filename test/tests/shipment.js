@@ -64,10 +64,41 @@ describe('shipmentCtrl', function () {
       return ASSETS.cebola.shipment.scheduleEntry(
         ASSETS.supplier,
         shipmentData,
-        []
+        [
+          {
+            productModel: {
+              _id: ASSETS.productModel._id.toString(),
+              description: ASSETS.productModel.description,
+            },
+            quantity: {
+              value: 20,
+              unit: 'kg'
+            }
+          },
+          {
+            productModel: {
+              _id: ASSETS.productModel._id.toString(),
+              description: ASSETS.productModel.description,
+            },
+            quantity: {
+              value: 30,
+              unit: 'kg'
+            }
+          }
+        ]
       )
       .then((shipment) => {
-        console.log(shipment);
+
+
+        shipment.type.should.eql('entry');
+        shipment.scheduledFor.should.eql(shipmentData.scheduledFor.toDate());
+
+        return ASSETS.cebola.models.Allocation.find({
+          'shipment._id': shipment._id.toString(),
+        });
+      })
+      .then((shipmentAllocations) => {
+        shipmentAllocations.length.should.eql(2);
       })
       .catch((err) => {
         console.log(err);
