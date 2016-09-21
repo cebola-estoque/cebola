@@ -81,6 +81,18 @@ describe('allocationCtrl', function () {
         allocation.shipment._id.should.eql(ASSETS.shipment._id.toString());
         allocation.productModel._id.should.eql(ASSETS.productModel._id.toString());
 
+        // check that the allocation modifies the allocation summary
+        return ASSETS.cebola.inventory.allocationsSummary({
+          'productModel._id': ASSETS.productModel._id.toString(),
+        });
+
+      })
+      .then((summary) => {
+
+        summary.length.should.eql(1);
+
+        summary[0].quantity.value.should.eql(20);
+
       })
       .catch((err) => {
         console.log(err);
@@ -88,6 +100,23 @@ describe('allocationCtrl', function () {
         throw err;
       });
     });
+    
+    it('should ensure that quantity value matches the allocation type', function () {
+
+      return allocationCtrl.allocate(ASSETS.shipment, {
+        productModel: ASSETS.productModel,
+        productExpiry: moment().add(2, 'day').toDate(),
+        quantity: {
+          value: -20,
+          unit: 'kg'
+        }
+      })
+      .then(aux.errorExpected, (err) => {
+        
+      })
+
+    });
   });
+
 
 });
