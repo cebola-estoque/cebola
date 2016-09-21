@@ -58,7 +58,7 @@ describe('shipmentCtrl', function () {
     it('should scheduleEntry a new entry shipment', function () {
 
       var shipmentData = {
-        scheduledFor: moment().add(1, 'day'),
+        scheduledFor: moment().add(1, 'day').toDate(),
       };
 
       return ASSETS.cebola.shipment.scheduleEntry(
@@ -70,6 +70,7 @@ describe('shipmentCtrl', function () {
               _id: ASSETS.productModel._id.toString(),
               description: ASSETS.productModel.description,
             },
+            productExpiry: moment().add(2, 'day').toDate(),
             quantity: {
               value: 20,
               unit: 'kg'
@@ -80,6 +81,7 @@ describe('shipmentCtrl', function () {
               _id: ASSETS.productModel._id.toString(),
               description: ASSETS.productModel.description,
             },
+            productExpiry: moment().add(2, 'day').toDate(),
             quantity: {
               value: 30,
               unit: 'kg'
@@ -91,7 +93,7 @@ describe('shipmentCtrl', function () {
 
 
         shipment.type.should.eql('entry');
-        shipment.scheduledFor.should.eql(shipmentData.scheduledFor.toDate());
+        shipment.scheduledFor.should.eql(shipmentData.scheduledFor);
 
         return ASSETS.cebola.models.Allocation.find({
           'shipment._id': shipment._id.toString(),
