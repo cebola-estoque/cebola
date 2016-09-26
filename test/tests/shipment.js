@@ -111,4 +111,62 @@ describe('shipmentCtrl', function () {
     });
   });
 
+  describe('getById(shipmentId, options)', function () {
+
+    beforeEach(function () {
+      var shipmentData = {
+        scheduledFor: moment().add(1, 'day').toDate(),
+      };
+
+      return ASSETS.cebola.shipment.scheduleEntry(
+        ASSETS.supplier,
+        shipmentData,
+        [
+          {
+            productModel: {
+              _id: ASSETS.productModel._id.toString(),
+              description: ASSETS.productModel.description,
+            },
+            productExpiry: moment().add(2, 'day').toDate(),
+            quantity: {
+              value: 20,
+              unit: 'kg'
+            }
+          },
+          {
+            productModel: {
+              _id: ASSETS.productModel._id.toString(),
+              description: ASSETS.productModel.description,
+            },
+            productExpiry: moment().add(2, 'day').toDate(),
+            quantity: {
+              value: 30,
+              unit: 'kg'
+            }
+          }
+        ]
+      )
+      .then((shipment) => {
+        ASSETS.shipment = shipment;
+      })
+    });
+
+    it('should retrieve a shipment by its _id attribute', function () {
+      return ASSETS.cebola.shipment.getById(ASSETS.shipment._id)
+        .then((shipment) => {
+          shipment._id.should.eql(ASSETS.shipment._id);
+        });
+    });
+
+    it('should retrieve the shipment along with its allocation and operation summaries', function () {
+      return ASSETS.cebola.shipment.getById(ASSETS.shipment._id, { withSummaries: true })
+        .then((shipment) => {
+          shipment._id.should.eql(ASSETS.shipment._id);
+
+          shipment.summaries.allocations.length.should.eql(1);
+          shipment.summaries.operations.length.should.eql(0);
+        });
+    });
+  });
+
 });
