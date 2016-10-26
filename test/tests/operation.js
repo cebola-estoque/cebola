@@ -82,25 +82,24 @@ describe('operationCtrl', function () {
     return aux.teardown();
   });
 
-  describe('#registerEntry(shipment, operationData)', function () {
+  describe('#registerEntry(shipment, productModel, productExpiry, quantityUnit, quantityValue)', function () {
 
     it('should create an entry operation associated to the given shipment', function () {
 
-      return operationCtrl.registerEntry(ASSETS.entryShipment, {
-        productModel: ASSETS.productModel,
-        productExpiry: moment().add(2, 'day').toDate(),
-        quantity: {
-          value: 20,
-          unit: 'kg'
-        }
-      })
+      return operationCtrl.registerEntry(
+        ASSETS.entryShipment,
+        ASSETS.productModel,
+        moment().add(2, 'day').toDate(),
+        'kg',
+        20
+      )
       .then((operation) => {
 
         operation.shipment._id.should.eql(ASSETS.entryShipment._id.toString());
         operation.productModel._id.should.eql(ASSETS.productModel._id.toString());
 
         // check that the operation modifies the operation summary
-        return ASSETS.cebola.inventory.operationsSummary({
+        return operationCtrl.summary({
           'productModel._id': ASSETS.productModel._id.toString(),
         });
 
@@ -126,35 +125,32 @@ describe('operationCtrl', function () {
 
     beforeEach(function () {
       return Bluebird.all([
-        operationCtrl.registerEntry(ASSETS.entryShipment, {
-          productModel: ASSETS.productModel,
-          productExpiry: productExpiry,
-          quantity: {
-            value: 20,
-            unit: 'kg'
-          }
-        }),
-        operationCtrl.registerEntry(ASSETS.entryShipment, {
-          productModel: ASSETS.productModel,
-          productExpiry: productExpiry,
-          quantity: {
-            value: 70,
-            unit: 'kg'
-          }
-        }),
+        operationCtrl.registerEntry(
+          ASSETS.entryShipment, 
+          ASSETS.productModel,
+          productExpiry,
+          'kg',
+          20
+        ),
+        operationCtrl.registerEntry(
+          ASSETS.entryShipment, 
+          ASSETS.productModel,
+          productExpiry,
+          'kg',
+          70
+        ),
       ]);
     });
 
     it('should register an exit operation associated to the given shipment', function () {
 
-      return operationCtrl.registerExit(ASSETS.exitShipment, {
-        productModel: ASSETS.productModel,
-        productExpiry: productExpiry,
-        quantity: {
-          value: -20,
-          unit: 'kg'
-        }
-      })
+      return operationCtrl.registerExit(
+        ASSETS.exitShipment, 
+        ASSETS.productModel,
+        productExpiry,
+        'kg',
+        -20
+      )
       .then((exitOperation) => {
         exitOperation.shipment._id.should.eql(ASSETS.exitShipment._id.toString());
 
@@ -166,23 +162,74 @@ describe('operationCtrl', function () {
         );
       })
       .then((summary) => {
-        summary[0].quantity.value.should.eql(90 - 20);
+        summary.quantity.value.should.eql(90 - 20);
       });
     });
 
     it('should ensure that the quantity requested is available', function () {
 
-      return operationCtrl.registerExit(ASSETS.exitShipment, {
-        productModel: ASSETS.productModel,
-        productExpiry: productExpiry,
-        quantity: {
-          value: -100,
-          unit: 'kg'
-        }
-      })
+      return operationCtrl.registerExit(
+        ASSETS.exitShipment,
+        ASSETS.productModel,
+        productExpiry,
+        'kg',
+        -100
+      )
       .then(aux.errorExpected, (err) => {
         err.name.should.eql('ProductNotAvailable');
       });
+    });
+  });
+
+  describe('#listByShipment(shipment)', function () {
+    it('should list operations related to the given shipment', function () {
+
+      var productExpiry = moment().add(2, 'day').toDate()
+
+      return Bluebird.all([
+        operationCtrl.registerEntry(
+          ASSETS.entryShipment,
+          ASSETS.productModel,
+          productExpiry,
+          'kg',
+          20
+        ),
+        operationCtrl.registerEntry(
+          ASSETS.entryShipment,
+          ASSETS.productModel,
+          productExpiry,
+          'kg',
+          40
+        ),
+      ])
+      .then(() => {
+
+        // register an exit operation
+        return operationCtrl.registerExit(
+          ASSETS.exitShipment,
+          ASSETS.productModel,
+          productExpiry,
+          'kg',
+          -50
+        );
+      })
+      .then(() => {
+        return Bluebird.all([
+          operationCtrl.listByShipment(ASSETS.entryShipment),
+          operationCtrl.listByShipment(ASSETS.exitShipment),
+        ]);
+      })
+      .then((results) => {
+        var entryOperations = results[0];
+        var exitOperations  = results[1];
+
+        entryOperations.length.should.eql(2);
+        exitOperations.length.should.eql(1);
+      })
+      .catch((err) => {
+        console.warn(err);
+        throw err;
+      })
     });
   });
 
@@ -191,34 +238,30 @@ describe('operationCtrl', function () {
 
     beforeEach(function () {
       return Bluebird.all([
-        operationCtrl.registerEntry(ASSETS.entryShipment, {
-          productModel: ASSETS.productModel,
-          productExpiry: productExpiry,
-          quantity: {
-            value: 20,
-            unit: 'kg'
-          }
-        }),
-        operationCtrl.registerEntry(ASSETS.entryShipment, {
-          productModel: ASSETS.productModel,
-          productExpiry: productExpiry,
-          quantity: {
-            value: 70,
-            unit: 'kg'
-          }
-        }),
+        operationCtrl.registerEntry(
+          ASSETS.entryShipment,
+          ASSETS.productModel,
+          productExpiry,
+          'kg',
+          20
+        ),
+        operationCtrl.registerEntry(
+          ASSETS.entryShipment,
+          ASSETS.productModel,
+          productExpiry,
+          'kg',
+          70
+        ),
       ]);
     });
 
     it('should register a loss of a product', function () {
-      return operationCtrl.registerLoss({
-        productModel: ASSETS.productModel,
-        productExpiry: productExpiry,
-        quantity: {
-          value: -90,
-          unit: 'kg'
-        }
-      })
+      return operationCtrl.registerLoss(
+        ASSETS.productModel,
+        productExpiry,
+        'kg',
+        -90
+      )
       .then((exitOperation) => {
         // check that exit is taken into account for summaries
         return operationCtrl.productSummary(
@@ -230,20 +273,18 @@ describe('operationCtrl', function () {
       .then((summary) => {
         // loss equals the total available before loss,
         // thus the product should not appear anymore in the summary
-        summary.length.should.eql(0);
+        summary.quantity.value.should.eql(0);
       })
       .catch(aux.logError);
     });
 
     it('should ensure the quantity to be lost is in stock', function () {
-      return operationCtrl.registerLoss({
-        productModel: ASSETS.productModel,
-        productExpiry: productExpiry,
-        quantity: {
-          value: -91,
-          unit: 'kg'
-        }
-      })
+      return operationCtrl.registerLoss(
+        ASSETS.productModel,
+        productExpiry,
+        'kg',
+        -91
+      )
       .then(aux.errorExpected, (err) => {
         err.name.should.eql('ProductNotAvailable');
       });

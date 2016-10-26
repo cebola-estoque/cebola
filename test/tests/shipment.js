@@ -55,11 +55,13 @@ describe('shipmentCtrl', function () {
   });
 
   describe('scheduleEntry', function () {
-    it('should scheduleEntry a new entry shipment', function () {
+    it.only('should scheduleEntry a new entry shipment', function () {
 
       var shipmentData = {
         scheduledFor: moment().add(1, 'day').toDate(),
       };
+
+      var productExpiry = moment().add(2, 'day').toDate();
 
       return ASSETS.cebola.shipment.scheduleEntry(
         ASSETS.supplier,
@@ -70,7 +72,7 @@ describe('shipmentCtrl', function () {
               _id: ASSETS.productModel._id.toString(),
               description: ASSETS.productModel.description,
             },
-            productExpiry: moment().add(2, 'day').toDate(),
+            productExpiry: productExpiry,
             quantity: {
               value: 20,
               unit: 'kg'
@@ -81,7 +83,7 @@ describe('shipmentCtrl', function () {
               _id: ASSETS.productModel._id.toString(),
               description: ASSETS.productModel.description,
             },
-            productExpiry: moment().add(2, 'day').toDate(),
+            productExpiry: productExpiry,
             quantity: {
               value: 30,
               unit: 'kg'
@@ -158,7 +160,7 @@ describe('shipmentCtrl', function () {
         });
     });
 
-    it('should retrieve the shipment along with its allocation and operation summaries', function () {
+    it.skip('should retrieve the shipment along with its allocation and operation summaries', function () {
       return ASSETS.cebola.shipment.getById(ASSETS.shipment._id, { withSummaries: true })
         .then((shipment) => {
           shipment._id.should.eql(ASSETS.shipment._id);

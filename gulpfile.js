@@ -5,7 +5,7 @@ const istanbul    = require('gulp-istanbul');
 const mocha       = require('gulp-mocha');
 
 gulp.task('pre-test', function () {
-  return gulp.src(['server/**/*.js', 'shared/**/*.js'])
+  return gulp.src(['lib/**/*.js', 'shared/**/*.js'])
     // Covering files
     .pipe(istanbul())
     // Force `require` to return covered files
