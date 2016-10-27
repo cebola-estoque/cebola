@@ -55,7 +55,7 @@ describe('shipmentCtrl', function () {
   });
 
   describe('scheduleEntry', function () {
-    it.only('should scheduleEntry a new entry shipment', function () {
+    it('should scheduleEntry a new entry shipment', function () {
 
       var shipmentData = {
         scheduledFor: moment().add(1, 'day').toDate(),
