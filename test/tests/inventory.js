@@ -8,9 +8,10 @@ const aux = require('../aux');
 
 const makeCebola = require('../../lib');
 
-describe('allocationCtrl', function () {
+describe('inventoryCtrl', function () {
 
   var ASSETS;
+  var inventoryCtrl;
   var allocationCtrl;
 
   beforeEach(function () {
@@ -24,6 +25,7 @@ describe('allocationCtrl', function () {
 
         ASSETS.cebola = cebola;
 
+        inventoryCtrl  = ASSETS.cebola.inventory;
         allocationCtrl = ASSETS.cebola.allocation;
 
         // create required database entries:
@@ -82,44 +84,7 @@ describe('allocationCtrl', function () {
     return aux.teardown();
   });
 
-  describe('#allocateEntry(shipment, productModel, productExpiry, quantityUnit, quantityValue)', function () {
-
-    it('should create an allocation associated to the given shipment', function () {
-
-      return allocationCtrl.allocateEntry(
-        ASSETS.entryShipment,
-        ASSETS.productModel,
-        moment().add(2, 'day').toDate(),
-        'kg',
-        20
-      )
-      .then((allocation) => {
-
-        allocation.shipment._id.should.eql(ASSETS.entryShipment._id.toString());
-        allocation.productModel._id.should.eql(ASSETS.productModel._id.toString());
-
-        // check that the allocation modifies the allocation summary
-        return allocationCtrl.summary({
-          'productModel._id': ASSETS.productModel._id.toString(),
-        });
-
-      })
-      .then((summary) => {
-
-        summary.length.should.eql(1);
-
-        summary[0].quantity.value.should.eql(20);
-
-      })
-      .catch((err) => {
-        console.log(err);
-
-        throw err;
-      });
-    });
-  });
-
-  describe('#allocateExit(shipment, productModel, productExpiry, quantityUnit, quantityValue)', function () {
+  describe('#productAvailability(productModel, productExpiry, quantityUnit, targetDate)', function () {
     var productExpiry = moment().add(2, 'day').toDate();
 
     beforeEach(function () {
@@ -140,48 +105,62 @@ describe('allocationCtrl', function () {
           'kg',
           50
         ),
-      ]);
+      ])
+      .then((operations) => {
 
-    });
+        return Bluebird.all([
+          // exit 30
+          allocationCtrl.allocateExit(
+            ASSETS.exitShipment,
+            ASSETS.productModel,
+            productExpiry,
+            'kg',
+            -30
+          ),
 
-    it('should create an exit allocation', function () {
-
-      return allocationCtrl.allocateExit(
-        ASSETS.exitShipment,
-        ASSETS.productModel,
-        productExpiry,
-        'kg',
-        -40
-      )
-      .then((allocation) => {
-        allocation.quantity.value.should.eql(-40);
+          // enter 50
+          allocationCtrl.allocateEntry(
+            ASSETS.entryShipment,
+            ASSETS.productModel,
+            productExpiry,
+            'kg',
+            50
+          ),
+        ]);
       })
       .catch(aux.logError);
 
     });
 
-    it('should check for quantity available for allocation prior to creating exit allocation', function () {
-
-      return allocationCtrl.allocateExit(
-        ASSETS.exitShipment,
+    it('should check amount in stock and deduce exit allocations', function () {
+      return inventoryCtrl.productAvailability(
         ASSETS.productModel,
         productExpiry,
         'kg',
-        -40
+        // before the entry allocation
+        moment().add(1, 'hour').toDate()
       )
-      .then(() => {
-        return allocationCtrl.allocateExit(
-          ASSETS.exitShipment,
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
-          -41
-        );
-      })
-      .then(aux.errorExpected, (err) => {
-        err.name.should.eql('ProductNotAvailable');
-      })
-      .catch(aux.logError);
+      .then((available) => {
+
+        // should count all in stock minus amount allocated for exit
+        available.should.eql(50);
+      });
+    });
+
+    it('should take into account entry allocations up to the targetDate', function () {
+      return inventoryCtrl.productAvailability(
+        ASSETS.productModel,
+        productExpiry,
+        'kg',
+        // after the entry allocation
+        moment().add(5, 'weeks').toDate()
+      )
+      .then((available) => {
+
+        // should count all in stock minus amount allocated for exit
+        // plus amount allocated for entry prior to the targetDate
+        available.should.eql(100);
+      });
 
     });
 

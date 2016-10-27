@@ -97,7 +97,7 @@ describe('shipmentCtrl', function () {
         shipment.type.should.eql('entry');
         shipment.scheduledFor.should.eql(shipmentData.scheduledFor);
 
-        return ASSETS.cebola.models.Allocation.find({
+        return ASSETS.cebola.models.ProductAllocation.find({
           'shipment._id': shipment._id.toString(),
         });
       })
