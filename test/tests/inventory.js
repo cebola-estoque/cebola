@@ -84,25 +84,28 @@ describe('inventoryCtrl', function () {
     return aux.teardown();
   });
 
-  describe('#productAvailability(productModel, productExpiry, quantityUnit, targetDate)', function () {
+  describe.skip('#productAvailability(productModel, productExpiry, quantityUnit, targetDate)', function () {
     var productExpiry = moment().add(2, 'day').toDate();
 
+    var product;
+
     beforeEach(function () {
+      product = {
+        model: ASSETS.productModel,
+        expiry: productExpiry,
+        measureUnit: 'kg'
+      };
 
       // create some operations so that the product may be considered in stock
       return Bluebird.all([
         ASSETS.cebola.operation.registerEntry(
           ASSETS.entryShipment,
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          product,
           30
         ),
         ASSETS.cebola.operation.registerEntry(
           ASSETS.entryShipment,
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          product,
           50
         ),
       ])
@@ -112,18 +115,14 @@ describe('inventoryCtrl', function () {
           // exit 30
           allocationCtrl.allocateExit(
             ASSETS.exitShipment,
-            ASSETS.productModel,
-            productExpiry,
-            'kg',
+            product,
             -30
           ),
 
           // enter 50
           allocationCtrl.allocateEntry(
             ASSETS.entryShipment,
-            ASSETS.productModel,
-            productExpiry,
-            'kg',
+            product,
             50
           ),
         ]);
@@ -134,9 +133,7 @@ describe('inventoryCtrl', function () {
 
     it('should check amount in stock and deduce exit allocations', function () {
       return inventoryCtrl.productAvailability(
-        ASSETS.productModel,
-        productExpiry,
-        'kg',
+        product,
         // before the entry allocation
         moment().add(1, 'hour').toDate()
       )
@@ -149,9 +146,7 @@ describe('inventoryCtrl', function () {
 
     it('should take into account entry allocations up to the targetDate', function () {
       return inventoryCtrl.productAvailability(
-        ASSETS.productModel,
-        productExpiry,
-        'kg',
+        product,
         // after the entry allocation
         moment().add(5, 'weeks').toDate()
       )
@@ -164,6 +159,67 @@ describe('inventoryCtrl', function () {
 
     });
 
+  });
+
+  describe('#summary(targetDate, query, filter)', function () {
+    var productExpiry = moment().add(2, 'day').toDate();
+    var product;
+
+    beforeEach(function () {
+      product = {
+        model: ASSETS.productModel,
+        expiry: productExpiry,
+        measureUnit: 'kg',
+      };
+
+      // create some operations so that the product may be considered in stock
+      return Bluebird.all([
+        ASSETS.cebola.operation.registerEntry(
+          ASSETS.entryShipment,
+          product,
+          30
+        ),
+        ASSETS.cebola.operation.registerEntry(
+          ASSETS.entryShipment,
+          product,
+          50
+        ),
+      ])
+      .then((operations) => {
+
+        return Bluebird.all([
+          // exit 30
+          allocationCtrl.allocateExit(
+            ASSETS.exitShipment,
+            product,
+            -30
+          ),
+
+          // enter 50
+          allocationCtrl.allocateEntry(
+            ASSETS.entryShipment,
+            product,
+            50
+          ),
+        ]);
+      })
+      .catch(aux.logError);
+
+    });
+
+    it('should work', function () {
+      return inventoryCtrl.availabilitySummary(productExpiry)
+        .then((summary) => {
+          console.log(summary);
+        });
+    });
+
+    it('should work 2', function () {
+      return inventoryCtrl.availabilitySummary(new Date())
+        .then((summary) => {
+          console.log(summary);
+        });
+    })
   });
 
 
