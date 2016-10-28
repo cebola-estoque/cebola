@@ -76,7 +76,7 @@ describe('inventoryCtrl', function () {
     return aux.teardown();
   });
 
-  describe.skip('playground', function () {
+  describe('playground', function () {
 
     beforeEach(function () {
       /**
@@ -101,6 +101,7 @@ describe('inventoryCtrl', function () {
           allocationCtrl.allocateExit(exit2, PRODUCT_1_0, -300),
 
           allocationCtrl.allocateEntry(entry1, PRODUCT_1_0, 400),
+          allocationCtrl.allocateEntry(entry1, PRODUCT_1_2, 500),
           allocationCtrl.allocateEntry(entry2, PRODUCT_1_0, 400),
         ]);
 
@@ -128,9 +129,14 @@ describe('inventoryCtrl', function () {
     });
 
     it('log-result', function () {
-      return inventoryCtrl.summary().then((summary) => {
-        console.log(summary);
-      });
+      // return inventoryCtrl.summary().then((summary) => {
+      //   console.log(summary);
+      // });
+      
+      return inventoryCtrl.shipmentSummary(aux.mockData.entryShipments[0])
+        .then((summary) => {
+          console.log(summary);
+        });
     });
 
   });
