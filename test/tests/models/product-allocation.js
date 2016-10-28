@@ -66,6 +66,11 @@ describe('ProductAllocation', function () {
         allocatedQuantity: -40
       });
 
+      allocation.setStatus(
+        ASSETS.cebola.constants.ALLOCATION_STATUSES.ACTIVE,
+        'TestReason'
+      );
+
       allocation.setShipment(entryShipment);
 
       return allocation.save()
@@ -79,6 +84,11 @@ describe('ProductAllocation', function () {
         product: product,
         allocatedQuantity: 40
       });
+
+      allocation.setStatus(
+        ASSETS.cebola.constants.ALLOCATION_STATUSES.ACTIVE,
+        'TestReason'
+      );
 
       allocation.setShipment(exitShipment);
 
@@ -94,13 +104,19 @@ describe('ProductAllocation', function () {
         allocatedQuantity: 40,
       });
 
+      allocation.setStatus(
+        ASSETS.cebola.constants.ALLOCATION_STATUSES.ACTIVE,
+        'TestReason'
+      );
+
       allocation.setShipment(entryShipment);
 
       return allocation.save().then((allocation) => {
         allocation.allocatedQuantity.should.equal(40);
         allocation.effectivatedQuantity.should.equal(0);
         allocation.quantity.should.equal(40);
-      });
+      })
+      .catch(aux.logError);
 
     });
 
@@ -109,6 +125,11 @@ describe('ProductAllocation', function () {
         product: product,
         allocatedQuantity: 40,
       });
+
+      allocation.setStatus(
+        ASSETS.cebola.constants.ALLOCATION_STATUSES.ACTIVE,
+        'TestReason'
+      );
 
       allocation.setShipment(entryShipment);
 
@@ -133,6 +154,11 @@ describe('ProductAllocation', function () {
         product: product,
         allocatedQuantity: 40,
       });
+
+      allocation.setStatus(
+        ASSETS.cebola.constants.ALLOCATION_STATUSES.ACTIVE,
+        'TestReason'
+      );
 
       allocation.setShipment(entryShipment);
 
@@ -161,6 +187,11 @@ describe('ProductAllocation', function () {
         allocatedQuantity: 40,
       });
 
+      allocation.setStatus(
+        ASSETS.cebola.constants.ALLOCATION_STATUSES.ACTIVE,
+        'TestReason'
+      );
+
       allocation.setShipment(entryShipment);
 
       return allocation.save()
@@ -186,6 +217,11 @@ describe('ProductAllocation', function () {
         product: product,
         allocatedQuantity: 40,
       });
+
+      allocation.setStatus(
+        ASSETS.cebola.constants.ALLOCATION_STATUSES.ACTIVE,
+        'TestReason'
+      );
 
       allocation.setShipment(entryShipment);
 

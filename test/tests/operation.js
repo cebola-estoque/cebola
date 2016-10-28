@@ -32,7 +32,7 @@ describe('operationCtrl', function () {
     return aux.teardown();
   });
 
-  describe('#registerEntry(shipment, product, quantity)', function () {
+  describe('#registerEntry(product, quantity, operationData)', function () {
 
     it('should create an entry operation associated to the given shipment', function () {
 
@@ -44,9 +44,11 @@ describe('operationCtrl', function () {
       };
 
       return operationCtrl.registerEntry(
-        shipment,
         product,
-        20
+        20,
+        {
+          shipment: shipment,
+        }
       )
       .then((operation) => {
 
@@ -81,14 +83,18 @@ describe('operationCtrl', function () {
 
       return Bluebird.all([
         operationCtrl.registerEntry(
-          entryShipment, 
           product,
-          20
+          20,
+          {
+            shipment: entryShipment,
+          }
         ),
         operationCtrl.registerEntry(
-          entryShipment, 
           product,
-          70
+          70,
+          {
+            shipment: entryShipment,
+          }
         ),
       ]);
     });
@@ -96,9 +102,11 @@ describe('operationCtrl', function () {
     it('should register an exit operation associated to the given shipment', function () {
 
       return operationCtrl.registerExit(
-        exitShipment,
         product,
-        -20
+        -20,
+        {
+          shipment: exitShipment,
+        }
       )
       .then((exitOperation) => {
         exitOperation.shipment._id.should.eql(exitShipment._id.toString());
@@ -118,9 +126,11 @@ describe('operationCtrl', function () {
     it('should ensure that the quantity requested is available', function () {
 
       return operationCtrl.registerExit(
-        exitShipment,
         product,
-        -100
+        -100,
+        {
+          shipment: exitShipment,
+        }
       )
       .then(aux.errorExpected, (err) => {
         err.name.should.eql('ProductNotAvailable');
@@ -144,23 +154,29 @@ describe('operationCtrl', function () {
 
       return Bluebird.all([
         operationCtrl.registerEntry(
-          entryShipment,
           product,
-          20
+          20,
+          {
+            shipment: entryShipment,
+          }
         ),
         operationCtrl.registerEntry(
-          entryShipment,
           product,
-          40
+          40,
+          {
+            shipment: entryShipment,
+          }
         ),
       ])
       .then(() => {
 
         // register an exit operation
         return operationCtrl.registerExit(
-          exitShipment,
           product,
-          -50
+          -50,
+          {
+            shipment: exitShipment,
+          }
         );
       })
       .then(() => {
@@ -195,14 +211,18 @@ describe('operationCtrl', function () {
     beforeEach(function () {
       return Bluebird.all([
         operationCtrl.registerEntry(
-          entryShipment,
           product,
-          20
+          20,
+          {
+            shipment: entryShipment,
+          }
         ),
         operationCtrl.registerEntry(
-          entryShipment,
           product,
-          70
+          70,
+          {
+            shipment: entryShipment,
+          }
         ),
       ]);
     });

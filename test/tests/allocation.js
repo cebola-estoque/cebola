@@ -107,6 +107,9 @@ describe('allocationCtrl', function () {
         return ASSETS.cebola.inventory.productSummary(product);
       })
       .then((summary) => {
+
+        console.log(summary);
+
         summary.inStock.should.eql(0);
         summary.allocatedForExit.should.eql(0);
         summary.allocatedForEntry.should.eql(20);
@@ -133,14 +136,18 @@ describe('allocationCtrl', function () {
       // create some operations so that the product may be considered in stock
       return Bluebird.all([
         ASSETS.cebola.operation.registerEntry(
-          ASSETS.entryShipment,
           product,
-          30
+          30,
+          {
+            shipment: ASSETS.entryShipment,
+          }
         ),
         ASSETS.cebola.operation.registerEntry(
-          ASSETS.entryShipment,
           product,
-          50
+          50,
+          {
+            shipment: ASSETS.entryShipment,
+          }
         ),
       ]);
 

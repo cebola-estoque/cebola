@@ -60,7 +60,12 @@ describe('ProductOperation', function () {
         quantity: 10
       });
 
-      operation.setShipment(exitShipment);
+      operation.setStatus(
+        ASSETS.cebola.constants.OPERATION_STATUSES.ACTIVE,
+        'TestReason'
+      );
+
+      operation.set('type', 'exit');
 
       return operation.save().then(aux.errorExpected, (err) => {
         err.should.be.instanceof(mongoose.Error.ValidationError);
@@ -72,31 +77,12 @@ describe('ProductOperation', function () {
         quantity: -10
       });
 
-      operation.setShipment(entryShipment);
+      operation.setStatus(
+        ASSETS.cebola.constants.OPERATION_STATUSES.ACTIVE,
+        'TestReason'
+      );
 
-      return operation.save().then(aux.errorExpected, (err) => {
-        err.should.be.instanceof(mongoose.Error.ValidationError);
-      });
-    });
-
-    it('should require the operation\'s quantity to match the operation type: loss < 0', function () {
-      var operation = new ProductOperation({
-        quantity: 10
-      });
-
-      operation.set('type', 'loss');
-
-      return operation.save().then(aux.errorExpected, (err) => {
-        err.should.be.instanceof(mongoose.Error.ValidationError);
-      });
-    });
-
-    it('should require the operation\'s quantity to match the operation type: correction != 0', function () {
-      var operation = new ProductOperation({
-        quantity: 0
-      });
-
-      operation.set('type', 'correction');
+      operation.set('type', 'entry');
 
       return operation.save().then(aux.errorExpected, (err) => {
         err.should.be.instanceof(mongoose.Error.ValidationError);
