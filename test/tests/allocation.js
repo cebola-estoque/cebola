@@ -82,62 +82,64 @@ describe('allocationCtrl', function () {
     return aux.teardown();
   });
 
-  describe('#allocateEntry(shipment, productModel, productExpiry, quantityUnit, quantityValue)', function () {
+  describe('#allocateEntry(shipment, product, quantity)', function () {
 
     it('should create an allocation associated to the given shipment', function () {
 
+      var product = {
+        model: ASSETS.productModel,
+        expiry: moment().add(2, 'day').toDate(),
+        measureUnit: 'kg',
+      };
+
+
       return allocationCtrl.allocateEntry(
         ASSETS.entryShipment,
-        ASSETS.productModel,
-        moment().add(2, 'day').toDate(),
-        'kg',
+        product,
         20
       )
       .then((allocation) => {
 
         allocation.shipment._id.should.eql(ASSETS.entryShipment._id.toString());
-        allocation.productModel._id.should.eql(ASSETS.productModel._id.toString());
+        allocation.product.model._id.should.eql(ASSETS.productModel._id.toString());
 
         // check that the allocation modifies the allocation summary
-        return allocationCtrl.summary({
-          'productModel._id': ASSETS.productModel._id.toString(),
-        });
-
+        return ASSETS.cebola.inventory.productSummary(product);
       })
       .then((summary) => {
-
-        summary.length.should.eql(1);
-
-        summary[0].quantity.value.should.eql(20);
+        summary.inStock.should.eql(0);
+        summary.allocatedForExit.should.eql(0);
+        summary.allocatedForEntry.should.eql(20);
+        summary.quantity.should.eql(20);
 
       })
-      .catch((err) => {
-        console.log(err);
-
-        throw err;
-      });
+      .catch(aux.logError);
     });
   });
 
-  describe('#allocateExit(shipment, productModel, productExpiry, quantityUnit, quantityValue)', function () {
+  describe('#allocateExit(shipment, product, quantity)', function () {
     var productExpiry = moment().add(2, 'day').toDate();
 
+    var product;
+
     beforeEach(function () {
+
+      product = {
+        model: ASSETS.productModel,
+        expiry: productExpiry,
+        measureUnit: 'kg',
+      };
 
       // create some operations so that the product may be considered in stock
       return Bluebird.all([
         ASSETS.cebola.operation.registerEntry(
           ASSETS.entryShipment,
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          product,
           30
         ),
         ASSETS.cebola.operation.registerEntry(
           ASSETS.entryShipment,
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          product,
           50
         ),
       ]);
@@ -148,13 +150,11 @@ describe('allocationCtrl', function () {
 
       return allocationCtrl.allocateExit(
         ASSETS.exitShipment,
-        ASSETS.productModel,
-        productExpiry,
-        'kg',
+        product,
         -40
       )
       .then((allocation) => {
-        allocation.quantity.value.should.eql(-40);
+        allocation.quantity.should.eql(-40);
       })
       .catch(aux.logError);
 
@@ -164,17 +164,13 @@ describe('allocationCtrl', function () {
 
       return allocationCtrl.allocateExit(
         ASSETS.exitShipment,
-        ASSETS.productModel,
-        productExpiry,
-        'kg',
+        product,
         -40
       )
       .then(() => {
         return allocationCtrl.allocateExit(
           ASSETS.exitShipment,
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          product,
           -41
         );
       })

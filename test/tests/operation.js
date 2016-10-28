@@ -25,56 +25,6 @@ describe('operationCtrl', function () {
         ASSETS.cebola = cebola;
 
         operationCtrl = ASSETS.cebola.operation;
-
-        // create required database entries:
-        // - supplier
-        // - productModel
-        return Bluebird.all([
-          cebola.organization.create({
-            name: 'Test Organization 1',
-            roles: ['supplier'],
-            document: {
-              type: 'CNPJ',
-              value: '87.023.556/0001-81',
-            }
-          }),
-          cebola.organization.create({
-            name: 'Test Organization 2',
-            roles: ['receiver'],
-            document: {
-              type: 'CNPJ',
-              value: '22.505.238/0001-01',
-            }
-          }),
-          cebola.productModel.create({
-            description: 'Test Product',
-            sku: '12345678',
-          })
-        ]);
-      })
-      .then((results) => {
-        ASSETS.supplier = results[0];
-        ASSETS.receiver = results[1];
-        ASSETS.productModel = results[2];
-
-        return Bluebird.all([
-          ASSETS.cebola.shipment.scheduleEntry(
-            ASSETS.supplier,
-            {
-              scheduledFor: moment().add(1, 'day'),
-            }
-          ),
-          ASSETS.cebola.shipment.scheduleExit(
-            ASSETS.receiver,
-            {
-              scheduledFor: moment().add(1, 'day'),
-            }
-          ),
-        ]);
-      })
-      .then((shipments) => {
-        ASSETS.entryShipment = shipments[0];
-        ASSETS.exitShipment = shipments[1];
       });
   });
 
@@ -82,61 +32,62 @@ describe('operationCtrl', function () {
     return aux.teardown();
   });
 
-  describe('#registerEntry(shipment, productModel, productExpiry, quantityUnit, quantityValue)', function () {
+  describe('#registerEntry(shipment, product, quantity)', function () {
 
     it('should create an entry operation associated to the given shipment', function () {
 
+      var shipment = aux.mockData.entryShipments[0];
+      var product  = {
+        model: aux.mockData.productModels[0],
+        expiry: moment().add(5, 'day'),
+        measureUnit: 'kg',
+      };
+
       return operationCtrl.registerEntry(
-        ASSETS.entryShipment,
-        ASSETS.productModel,
-        moment().add(2, 'day').toDate(),
-        'kg',
+        shipment,
+        product,
         20
       )
       .then((operation) => {
 
-        operation.shipment._id.should.eql(ASSETS.entryShipment._id.toString());
-        operation.productModel._id.should.eql(ASSETS.productModel._id.toString());
+        operation.shipment._id.should.eql(shipment._id.toString());
+        operation.product.model._id.should.eql(product.model._id.toString());
 
         // check that the operation modifies the operation summary
-        return operationCtrl.summary({
-          'productModel._id': ASSETS.productModel._id.toString(),
-        });
+        return ASSETS.cebola.inventory.productSummary(product);
 
       })
       .then((summary) => {
-
-        summary.length.should.eql(1);
-
-        summary[0].quantity.value.should.eql(20);
-
+        summary.allocatedForEntry.should.eql(0);
+        summary.allocatedForExit.should.eql(0);
+        summary.inStock.should.eql(20);
+        summary.quantity.should.eql(20);
       })
-      .catch((err) => {
-        console.log(err);
-
-        throw err;
-      });
+      .catch(aux.logError);
     });
   });
 
-  describe('#registerExit(shipment, operationData)', function () {
+  describe('#registerExit(shipment, product, quantity)', function () {
 
-    var productExpiry = moment().add(2, 'day').toDate();
+    var entryShipment = aux.mockData.entryShipments[0];
+    var exitShipment  = aux.mockData.exitShipments[0];
+    var product  = {
+      model: aux.mockData.productModels[0],
+      expiry: moment().add(5, 'day'),
+      measureUnit: 'kg',
+    };
 
     beforeEach(function () {
+
       return Bluebird.all([
         operationCtrl.registerEntry(
-          ASSETS.entryShipment, 
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          entryShipment, 
+          product,
           20
         ),
         operationCtrl.registerEntry(
-          ASSETS.entryShipment, 
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          entryShipment, 
+          product,
           70
         ),
       ]);
@@ -145,34 +96,30 @@ describe('operationCtrl', function () {
     it('should register an exit operation associated to the given shipment', function () {
 
       return operationCtrl.registerExit(
-        ASSETS.exitShipment, 
-        ASSETS.productModel,
-        productExpiry,
-        'kg',
+        exitShipment,
+        product,
         -20
       )
       .then((exitOperation) => {
-        exitOperation.shipment._id.should.eql(ASSETS.exitShipment._id.toString());
+        exitOperation.shipment._id.should.eql(exitShipment._id.toString());
 
         // check that exit is taken into account for summaries
-        return operationCtrl.productSummary(
-          ASSETS.productModel,
-          productExpiry,
-          'kg'
-        );
+        return ASSETS.cebola.inventory.productSummary(product);
       })
       .then((summary) => {
-        summary.quantity.value.should.eql(90 - 20);
-      });
+        summary.allocatedForExit.should.eql(0);
+        summary.allocatedForEntry.should.eql(0);
+        summary.inStock.should.eql(90 - 20);
+        summary.quantity.should.eql(90 - 20);
+      })
+      .catch(aux.logError);
     });
 
     it('should ensure that the quantity requested is available', function () {
 
       return operationCtrl.registerExit(
-        ASSETS.exitShipment,
-        ASSETS.productModel,
-        productExpiry,
-        'kg',
+        exitShipment,
+        product,
         -100
       )
       .then(aux.errorExpected, (err) => {
@@ -182,23 +129,28 @@ describe('operationCtrl', function () {
   });
 
   describe('#listByShipment(shipment)', function () {
+
+    var entryShipment = aux.mockData.entryShipments[0];
+    var exitShipment  = aux.mockData.exitShipments[1];
+    var product  = {
+      model: aux.mockData.productModels[0],
+      expiry: moment().add(5, 'day'),
+      measureUnit: 'kg',
+    };
+
     it('should list operations related to the given shipment', function () {
 
       var productExpiry = moment().add(2, 'day').toDate()
 
       return Bluebird.all([
         operationCtrl.registerEntry(
-          ASSETS.entryShipment,
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          entryShipment,
+          product,
           20
         ),
         operationCtrl.registerEntry(
-          ASSETS.entryShipment,
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          entryShipment,
+          product,
           40
         ),
       ])
@@ -206,17 +158,15 @@ describe('operationCtrl', function () {
 
         // register an exit operation
         return operationCtrl.registerExit(
-          ASSETS.exitShipment,
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          exitShipment,
+          product,
           -50
         );
       })
       .then(() => {
         return Bluebird.all([
-          operationCtrl.listByShipment(ASSETS.entryShipment),
-          operationCtrl.listByShipment(ASSETS.exitShipment),
+          operationCtrl.listByShipment(entryShipment),
+          operationCtrl.listByShipment(exitShipment),
         ]);
       })
       .then((results) => {
@@ -234,22 +184,24 @@ describe('operationCtrl', function () {
   });
 
   describe('#registerLoss(lossData)', function () {
-    var productExpiry = moment().add(2, 'day').toDate();
+    var entryShipment = aux.mockData.entryShipments[0];
+    var exitShipment  = aux.mockData.exitShipments[1];
+    var product  = {
+      model: aux.mockData.productModels[0],
+      expiry: moment().add(5, 'day'),
+      measureUnit: 'kg',
+    };
 
     beforeEach(function () {
       return Bluebird.all([
         operationCtrl.registerEntry(
-          ASSETS.entryShipment,
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          entryShipment,
+          product,
           20
         ),
         operationCtrl.registerEntry(
-          ASSETS.entryShipment,
-          ASSETS.productModel,
-          productExpiry,
-          'kg',
+          entryShipment,
+          product,
           70
         ),
       ]);
@@ -257,32 +209,27 @@ describe('operationCtrl', function () {
 
     it('should register a loss of a product', function () {
       return operationCtrl.registerLoss(
-        ASSETS.productModel,
-        productExpiry,
-        'kg',
+        product,
         -90
       )
       .then((exitOperation) => {
         // check that exit is taken into account for summaries
-        return operationCtrl.productSummary(
-          ASSETS.productModel,
-          productExpiry,
-          'kg'
-        );
+        return ASSETS.cebola.inventory.productSummary(product);
       })
       .then((summary) => {
         // loss equals the total available before loss,
         // thus the product should not appear anymore in the summary
-        summary.quantity.value.should.eql(0);
+        summary.quantity.should.eql(0);
+        summary.allocatedForEntry.should.eql(0);
+        summary.allocatedForExit.should.eql(0);
+        summary.inStock.should.eql(0);
       })
       .catch(aux.logError);
     });
 
     it('should ensure the quantity to be lost is in stock', function () {
       return operationCtrl.registerLoss(
-        ASSETS.productModel,
-        productExpiry,
-        'kg',
+        product,
         -91
       )
       .then(aux.errorExpected, (err) => {

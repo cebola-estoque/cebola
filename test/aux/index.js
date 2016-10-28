@@ -14,6 +14,8 @@ if (process.env.DEBUG === 'TRUE') {
 
 const TEST_DB_URI = 'mongodb://localhost:27017/cebola-test-db';
 
+exports.mockData = require('./mock-data');
+
 exports.logError = function (err) {
   console.warn(err);
 
