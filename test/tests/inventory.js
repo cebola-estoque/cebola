@@ -83,10 +83,10 @@ describe('inventoryCtrl', function () {
        * Start with 1000 units of all products
        */
       return Bluebird.all([
-        operationCtrl.registerCorrection(PRODUCT_1_0, 1000),
-        operationCtrl.registerCorrection(PRODUCT_1_1, 1000),
-        operationCtrl.registerCorrection(PRODUCT_1_2, 700),
-        operationCtrl.registerCorrection(PRODUCT_1_2, 300),
+        operationCtrl.registerEntry(PRODUCT_1_0, 1000),
+        operationCtrl.registerEntry(PRODUCT_1_1, 1000),
+        operationCtrl.registerEntry(PRODUCT_1_2, 700),
+        operationCtrl.registerEntry(PRODUCT_1_2, 300),
       ])
       .then((operations) => {
 
@@ -150,10 +150,10 @@ describe('inventoryCtrl', function () {
        * Start with 1000 units of all products
        */
       return Bluebird.all([
-        operationCtrl.registerCorrection(PRODUCT_1_0, 1000),
-        operationCtrl.registerCorrection(PRODUCT_1_1, 1000),
-        operationCtrl.registerCorrection(PRODUCT_1_2, 700),
-        operationCtrl.registerCorrection(PRODUCT_1_2, 300),
+        operationCtrl.registerEntry(PRODUCT_1_0, 1000),
+        operationCtrl.registerEntry(PRODUCT_1_1, 1000),
+        operationCtrl.registerEntry(PRODUCT_1_2, 700),
+        operationCtrl.registerEntry(PRODUCT_1_2, 300),
       ])
       .then((operations) => {
 
