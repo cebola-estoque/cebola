@@ -6,6 +6,7 @@ const http = require('http');
 const MongoClient = require('mongodb').MongoClient;
 const mongoose    = require('mongoose');
 const Bluebird = require('bluebird');
+const moment   = require('moment');
 
 if (process.env.DEBUG === 'TRUE') {
   // set mongoose to debug mode
@@ -15,6 +16,20 @@ if (process.env.DEBUG === 'TRUE') {
 const TEST_DB_URI = 'mongodb://localhost:27017/cebola-test-db';
 
 exports.mockData = require('./mock-data');
+
+/**
+ * Helper function that checks whether two products are the same.
+ * @param  {Product} p1
+ * @param  {Product} p2
+ * @return {Boolean}   
+ */
+exports.areSameProduct = function (p1, p2) {
+  var isSameModel       = p1.model._id   === p2.model._id;
+  var isSameMeasureUnit = p1.measureUnit === p2.measureUnit;
+  var isSameExpiry      = moment(p1.expiry).isSame(moment(p2.expiry).endOf('day'));
+
+  return (isSameModel && isSameMeasureUnit && isSameExpiry);
+};
 
 exports.logError = function (err) {
   console.warn(err);

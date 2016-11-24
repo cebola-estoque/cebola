@@ -4,9 +4,9 @@ const mongoose = require('mongoose');
 const Bluebird = require('bluebird');
 const moment   = require('moment');
 
-const aux = require('../aux');
+const aux = require('../../aux');
 
-const makeCebola = require('../../lib');
+const makeCebola = require('../../../lib');
 
 describe('inventoryCtrl - shipment scoped methods', function () {
 
@@ -14,6 +14,46 @@ describe('inventoryCtrl - shipment scoped methods', function () {
   var inventoryCtrl;
   var allocationCtrl;
   var operationCtrl;
+
+  /**
+   * Mock data
+   */
+  
+  /**
+   * - is of product-1 model
+   * - expires only after all exit shipments that exist.
+   * - uses 'kg' as the measure unit
+   * @type {Object}
+   */
+  var PRODUCT_1_0 = {
+    model: aux.mockData.productModels[0],
+    expiry: moment().add(7, 'days').toDate(),
+    measureUnit: 'kg',
+  };
+
+  /**
+   * - is of product-1 model
+   * - expires after the first shipments (1 day) and before the second (2 days)
+   * - uses 'kg' as the measure unit
+   * @type {Object}
+   */
+  var PRODUCT_1_1 = {
+    model: aux.mockData.productModels[0],
+    expiry: moment().add(2, 'days').toDate(),
+    measureUnit: 'kg',
+  };
+
+  /**
+   * - is of product-1 model
+   * - expires before both shipments. MUST NOT BE SHIPPABLE
+   * - uses 'kg' as the measure unit
+   * @type {Object}
+   */
+  var PRODUCT_1_2 = {
+    model: aux.mockData.productModels[0],
+    expiry: moment().add(12, 'hour').toDate(),
+    measureUnit: 'kg',
+  };
 
   beforeEach(function () {
     return aux.setup()
@@ -36,143 +76,115 @@ describe('inventoryCtrl - shipment scoped methods', function () {
     return aux.teardown();
   });
 
-  // describe.skip('#productAvailability(productModel, productExpiry, quantityUnit, targetDate)', function () {
-  //   var productExpiry = moment().add(2, 'day').toDate();
+  describe('#shipmentSummary(shipment) - entry shipments', function () {
 
-  //   var product;
+    beforeEach(function () {
+      /**
+       * Start with 1000 units of all products
+       */
+      return Bluebird.all([
+        operationCtrl.registerEntry(PRODUCT_1_0, 1000),
+        operationCtrl.registerEntry(PRODUCT_1_1, 1000),
+        operationCtrl.registerEntry(PRODUCT_1_2, 700),
+        operationCtrl.registerEntry(PRODUCT_1_2, 300),
+      ])
+      .then((operations) => {
 
-  //   beforeEach(function () {
-  //     product = {
-  //       model: ASSETS.productModel,
-  //       expiry: productExpiry,
-  //       measureUnit: 'kg'
-  //     };
+        var entry1 = aux.mockData.entryShipments[0];
+        var entry2 = aux.mockData.entryShipments[1];
 
-  //     // create some operations so that the product may be considered in stock
-  //     return Bluebird.all([
-  //       ASSETS.cebola.operation.registerEntry(
-  //         ASSETS.entryShipment,
-  //         product,
-  //         30
-  //       ),
-  //       ASSETS.cebola.operation.registerEntry(
-  //         ASSETS.entryShipment,
-  //         product,
-  //         50
-  //       ),
-  //     ])
-  //     .then((operations) => {
+        return Bluebird.all([
+          allocationCtrl.allocateEntry(entry1, PRODUCT_1_0, 400),
+          allocationCtrl.allocateEntry(entry1, PRODUCT_1_2, 500),
+          allocationCtrl.allocateEntry(entry2, PRODUCT_1_0, 400),
+        ]);
+      })
+      .then((allocations) => {
 
-  //       return Bluebird.all([
-  //         // exit 30
-  //         allocationCtrl.allocateExit(
-  //           ASSETS.exitShipment,
-  //           product,
-  //           -30
-  //         ),
+        return Bluebird.all([
+          allocationCtrl.effectivateEntry(allocations[2], 350),
+        ]);
 
-  //         // enter 50
-  //         allocationCtrl.allocateEntry(
-  //           ASSETS.entryShipment,
-  //           product,
-  //           50
-  //         ),
-  //       ]);
-  //     })
-  //     .catch(aux.logError);
+      })
+      .catch(aux.logError);
+    });
 
-  //   });
+    it('should list all allocated quantities for a shipment', function () {
+      return inventoryCtrl.shipmentSummary(aux.mockData.entryShipments[1])
+        .then((summary) => {
 
-  //   it('should check amount in stock and deduce exit allocations', function () {
-  //     return inventoryCtrl.productAvailability(
-  //       product,
-  //       // before the entry allocation
-  //       moment().add(1, 'hour').toDate()
-  //     )
-  //     .then((available) => {
+          var PRODUCT_1_0_summary = summary.find(function (summ) {
+            return aux.areSameProduct(summ.product, PRODUCT_1_0);
+          });
 
-  //       // should count all in stock minus amount allocated for exit
-  //       available.should.eql(50);
-  //     });
-  //   });
+          PRODUCT_1_0_summary.exited.should.eql(0);
+          PRODUCT_1_0_summary.entered.should.eql(350);
+          PRODUCT_1_0_summary.allocatedForExit.should.eql(0);
+          PRODUCT_1_0_summary.allocatedForEntry.should.eql(50);
 
-  //   it('should take into account entry allocations up to the targetDate', function () {
-  //     return inventoryCtrl.productAvailability(
-  //       product,
-  //       // after the entry allocation
-  //       moment().add(5, 'weeks').toDate()
-  //     )
-  //     .then((available) => {
+          PRODUCT_1_0_summary.quantity.should.eql(400);
+          PRODUCT_1_0_summary.inStock.should.eql(350);
 
-  //       // should count all in stock minus amount allocated for exit
-  //       // plus amount allocated for entry prior to the targetDate
-  //       available.should.eql(100);
-  //     });
+          summary.length.should.eql(1);
+        });
+    });
+  });
 
-  //   });
+  describe('#shipmentSummary(shipment) - exit shipments', function () {
+    beforeEach(function () {
+      /**
+       * Start with 1000 units of all products
+       */
+      return Bluebird.all([
+        operationCtrl.registerEntry(PRODUCT_1_0, 1000),
+        operationCtrl.registerEntry(PRODUCT_1_1, 1000),
+        operationCtrl.registerEntry(PRODUCT_1_2, 700),
+        operationCtrl.registerEntry(PRODUCT_1_2, 300),
+      ])
+      .then((operations) => {
 
-  // });
+        var exit1 = aux.mockData.exitShipments[0];
+        var exit2 = aux.mockData.exitShipments[1];
 
-  // describe('#summary(targetDate, query, filter)', function () {
-  //   var productExpiry = moment().add(2, 'day').toDate();
-  //   var product;
+        return Bluebird.all([
+          allocationCtrl.allocateExit(exit1, PRODUCT_1_0, -400),
+          allocationCtrl.allocateExit(exit1, PRODUCT_1_2, -500),
+          allocationCtrl.allocateExit(exit2, PRODUCT_1_0, -400),
+        ]);
+      })
+      .then((allocations) => {
 
-  //   beforeEach(function () {
-  //     product = {
-  //       model: ASSETS.productModel,
-  //       expiry: productExpiry,
-  //       measureUnit: 'kg',
-  //     };
+        return Bluebird.all([
+          allocationCtrl.effectivateExit(allocations[0], -100),
+          allocationCtrl.effectivateExit(allocations[1], -150),
+        ]);
 
-  //     // create some operations so that the product may be considered in stock
-  //     return Bluebird.all([
-  //       ASSETS.cebola.operation.registerEntry(
-  //         ASSETS.entryShipment,
-  //         product,
-  //         30
-  //       ),
-  //       ASSETS.cebola.operation.registerEntry(
-  //         ASSETS.entryShipment,
-  //         product,
-  //         50
-  //       ),
-  //     ])
-  //     .then((operations) => {
+      })
+      .catch(aux.logError);
+    });
 
-  //       return Bluebird.all([
-  //         // exit 30
-  //         allocationCtrl.allocateExit(
-  //           ASSETS.exitShipment,
-  //           product,
-  //           -30
-  //         ),
+    it('should list allocated quantities for exit shipment', function () {
+      return inventoryCtrl.shipmentSummary(aux.mockData.exitShipments[0])
+        .then((summary) => {
 
-  //         // enter 50
-  //         allocationCtrl.allocateEntry(
-  //           ASSETS.entryShipment,
-  //           product,
-  //           50
-  //         ),
-  //       ]);
-  //     })
-  //     .catch(aux.logError);
+          var PRODUCT_1_0_summary = summary.find(function (summ) {
+            return aux.areSameProduct(summ.product, PRODUCT_1_0);
+          });
 
-  //   });
+          PRODUCT_1_0_summary.entered.should.eql(0);
+          PRODUCT_1_0_summary.exited.should.eql(-100);
+          PRODUCT_1_0_summary.allocatedForExit.should.eql(-300);
+          PRODUCT_1_0_summary.allocatedForEntry.should.eql(0);
 
-  //   it('should work', function () {
-  //     return inventoryCtrl.availabilitySummary(productExpiry)
-  //       .then((summary) => {
-  //         console.log(summary);
-  //       });
-  //   });
+          var PRODUCT_1_2_summary = summary.find(function (summ) {
+            return aux.areSameProduct(summ.product, PRODUCT_1_2);
+          });
 
-  //   it('should work 2', function () {
-  //     return inventoryCtrl.availabilitySummary(new Date())
-  //       .then((summary) => {
-  //         console.log(summary);
-  //       });
-  //   })
-  // });
-
-
+          PRODUCT_1_2_summary.entered.should.eql(0);
+          PRODUCT_1_2_summary.exited.should.eql(-150);
+          PRODUCT_1_2_summary.allocatedForExit.should.eql(-350);
+          PRODUCT_1_2_summary.allocatedForEntry.should.eql(0);
+        });
+    });
+  });
 });

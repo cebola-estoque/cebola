@@ -68,26 +68,33 @@ describe('shipmentCtrl', function () {
         shipmentData,
         [
           {
-            productModel: {
-              _id: ASSETS.productModel._id.toString(),
-              description: ASSETS.productModel.description,
+            product: {
+              model: {
+                _id: ASSETS.productModel._id.toString(),
+                description: ASSETS.productModel.description,
+              },
+              expiry: productExpiry,
+              measureUnit: 'kg',
             },
-            productExpiry: productExpiry,
-            quantity: {
-              value: 20,
-              unit: 'kg'
-            }
+            quantity: 20,
+            // productModel: {
+            // },
+            // productExpiry: productExpiry,
+            // quantity: {
+            //   value: 20,
+            //   unit: 'kg'
+            // }
           },
           {
-            productModel: {
-              _id: ASSETS.productModel._id.toString(),
-              description: ASSETS.productModel.description,
+            product: {
+              model: {
+                _id: ASSETS.productModel._id.toString(),
+                description: ASSETS.productModel.description,
+              },
+              expiry: productExpiry,
+              measureUnit: 'kg',
             },
-            productExpiry: productExpiry,
-            quantity: {
-              value: 30,
-              unit: 'kg'
-            }
+            quantity: 30,
           }
         ]
       )
@@ -120,31 +127,33 @@ describe('shipmentCtrl', function () {
         scheduledFor: moment().add(1, 'day').toDate(),
       };
 
+      var productExpiry = moment().add(2, 'day').toDate();
+
       return ASSETS.cebola.shipment.scheduleEntry(
         ASSETS.supplier,
         shipmentData,
         [
           {
-            productModel: {
-              _id: ASSETS.productModel._id.toString(),
-              description: ASSETS.productModel.description,
+            product: {
+              model: {
+                _id: ASSETS.productModel._id.toString(),
+                description: ASSETS.productModel.description,
+              },
+              expiry: productExpiry,
+              measureUnit: 'kg',
             },
-            productExpiry: moment().add(2, 'day').toDate(),
-            quantity: {
-              value: 20,
-              unit: 'kg'
-            }
+            quantity: 20,
           },
           {
-            productModel: {
-              _id: ASSETS.productModel._id.toString(),
-              description: ASSETS.productModel.description,
+            product: {
+              model: {
+                _id: ASSETS.productModel._id.toString(),
+                description: ASSETS.productModel.description,
+              },
+              expiry: productExpiry,
+              measureUnit: 'kg',
             },
-            productExpiry: moment().add(2, 'day').toDate(),
-            quantity: {
-              value: 30,
-              unit: 'kg'
-            }
+            quantity: 30,
           }
         ]
       )
