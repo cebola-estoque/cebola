@@ -12,7 +12,7 @@
     "bluebird": "^3.4.6",
     "moment": "^2.15.0",
     "mongoose": "^4.6.0",
-    "mongoose-make-status": "git+ssh://git@bitbucket.org/habemus-tutti/mongoose-make-status.git"
+    "mongoose-make-status": "https://bitbucket.org/habemus-tutti/mongoose-make-status.git"
   },
   "devDependencies": {
     "gulp": "^3.9.1",
