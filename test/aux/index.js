@@ -8,6 +8,8 @@ const mongoose    = require('mongoose');
 const Bluebird = require('bluebird');
 const moment   = require('moment');
 
+mongoose.Promise = Bluebird;
+
 if (process.env.DEBUG === 'TRUE') {
   // set mongoose to debug mode
   require('mongoose').set('debug', true);

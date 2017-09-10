@@ -1,94 +1,94 @@
-const should = require('should');
+const should = require('should')
 
-const mongoose = require('mongoose');
-const Bluebird = require('bluebird');
-const moment   = require('moment');
+const mongoose = require('mongoose')
+const Bluebird = require('bluebird')
+const moment   = require('moment')
+const clone    = require('clone')
 
-const aux = require('../../aux');
+const aux = require('../../aux')
 
-const makeCebola = require('../../../lib');
+const makeCebola = require('../../../lib')
 
 describe('ProductOperation', function () {
 
-  var ASSETS;
-  var ProductOperation;
+  var ASSETS
+  var ProductOperation
 
   beforeEach(function () {
     return aux.setup()
       .then((assets) => {
-        ASSETS = assets;
+        ASSETS = assets
 
-        return makeCebola(ASSETS.connection, aux.genOptions({}));
+        return makeCebola(ASSETS.connection, aux.genOptions({}))
       })
       .then((cebola) => {
 
-        ASSETS.cebola = cebola;
+        ASSETS.cebola = cebola
 
-        ProductOperation = ASSETS.cebola.models.ProductOperation;
-      });
-  });
+        ProductOperation = ASSETS.cebola.models.ProductOperation
+      })
+  })
 
   afterEach(function () {
-    return aux.teardown();
-  });
+    return aux.teardown()
+  })
 
-  describe('quantity', function () {
-
-    var product = {
+  const SAMPLE_PRODUCT_OPERATION_DATA = {
+    type: 'entry',
+    quantity: 10,
+    product: {
       model: {
-        _id: 'product-model-id',
+        _id: 'product-model-id-123',
         description: 'Some product',
       },
-      expiry: moment().add(3, 'days').toDate(),
-      measureUnit: 'kg',
-    };
+      expiry: new Date(),
+      measureUnit: 'KG',
+      sourceShipment: {
+        _id: 'shipment-123123',
+      }
+    },
+    status: {
+      value: 'operation-active',
+      reason: 'TestReason',
+    }
+  }
 
-    var entryShipment = {
-      _id: 'some-entry-shipment-id',
-      type: 'entry',
-      scheduledFor: moment(product.expiry).subtract(1, 'day').toDate(),
-    };
+  describe('ProductOperation#kind', function () {
+    it('should use `operation` as `kind`', function () {
+      var operationData = clone(SAMPLE_PRODUCT_OPERATION_DATA)
+      var operation = new ProductOperation(operationData)
 
-    var exitShipment = {
-      _id: 'some-exit-shipment-id',
-      type: 'exit',
-      scheduledFor: moment(product.expiry).subtract(1, 'day').toDate(),
-    };
+      return operation.save().then((operationRecord) => {
+        operationRecord.kind.should.eql('ProductOperation')
+      })
+    })
+  })
+
+  describe('ProductOperation#quantity', function () {
 
     it('should require the operation\'s quantity to match the operation type: exit < 0', function () {
-      var operation = new ProductOperation({
-        quantity: 10
-      });
-
-      operation.setStatus(
-        ASSETS.cebola.constants.OPERATION_STATUSES.ACTIVE,
-        'TestReason'
-      );
-
-      operation.set('type', 'exit');
+      
+      var operationData = clone(SAMPLE_PRODUCT_OPERATION_DATA)
+      operationData.quantity = 10
+      operationData.type = 'exit'
+      var operation = new ProductOperation(operationData)
 
       return operation.save().then(aux.errorExpected, (err) => {
-        err.should.be.instanceof(mongoose.Error.ValidationError);
-      });
-    });
+        err.should.be.instanceof(mongoose.Error.ValidationError)
+      })
+    })
 
     it('should require the operation\'s quantity to match the operation type: entry > 0', function () {
-      var operation = new ProductOperation({
-        quantity: -10
-      });
-
-      operation.setStatus(
-        ASSETS.cebola.constants.OPERATION_STATUSES.ACTIVE,
-        'TestReason'
-      );
-
-      operation.set('type', 'entry');
+      var operationData = clone(SAMPLE_PRODUCT_OPERATION_DATA)
+      operationData.quantity = -10
+      operationData.type = 'entry'
+      var operation = new ProductOperation(operationData)
 
       return operation.save().then(aux.errorExpected, (err) => {
-        err.should.be.instanceof(mongoose.Error.ValidationError);
-      });
-    });
+        err.should.be.instanceof(mongoose.Error.ValidationError)
+      })
+    })
 
-  });
+  })
 
-});
+})
