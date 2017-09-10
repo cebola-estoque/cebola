@@ -32,6 +32,26 @@ describe('ProductRecord', function () {
     return aux.teardown();
   });
 
+  describe.only('ProductRecord static methods', function () {
+
+    describe('#normalizeExpiryDate(date)', function () {
+      it('should return a date that is at the last of the given date', function () {
+
+        var d = new Date();
+
+        ProductRecord.normalizeExpiryDate(d)
+          .should.eql(moment(d).endOf('day').toDate());
+      });
+    });
+
+    describe('#normalizeMeasureUnit(measureUnit)', function () {
+      it('should uppercase the measureUnit', function () {
+        ProductRecord.normalizeMeasureUnit('Kg')
+          .should.eql('KG');
+      });
+    });
+  });
+
   describe('ProductRecord#product', function () {
     /**
      * The ProductRecord#product property constitutes the identifier used

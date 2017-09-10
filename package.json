@@ -12,7 +12,8 @@
     "bluebird": "^3.4.6",
     "moment": "^2.15.0",
     "mongoose": "^4.6.0",
-    "mongoose-make-status": "git+https://bitbucket.org/habemus-tutti/mongoose-make-status.git"
+    "mongoose-make-status": "git+https://bitbucket.org/habemus-tutti/mongoose-make-status.git",
+    "uuid": "^3.1.0"
   },
   "devDependencies": {
     "clone": "^2.1.1",

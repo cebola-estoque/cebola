@@ -60,6 +60,8 @@ describe('ProductOperation', function () {
 
       return operation.save().then((operationRecord) => {
         operationRecord.kind.should.eql('ProductOperation')
+        operationRecord.type.should.eql('entry')
+        operationRecord.category.should.eql('normal')
       })
     })
   })
