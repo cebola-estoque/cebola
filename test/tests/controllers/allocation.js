@@ -142,7 +142,7 @@ describe('allocationCtrl', function () {
   });
 
   describe('#effectivateEntry(entryAllocation, quantity)', function () {
-    it.only('should create an entry operation related to the allocation', function () {
+    it('should create an entry operation related to the allocation', function () {
       var productData = clone(SAMPLE_PRODUCT_DATA);
       var shipmentData = clone(SAMPLE_ENTRY_SHIPMENT_DATA);
 
@@ -176,6 +176,87 @@ describe('allocationCtrl', function () {
           console.warn(err);
           throw err;
         });
+    });
+  });
+
+  describe('#effectivateExit(exitAllocation, quantity)', function () {
+    it('should create an exit operation related to the exitAllocation', function () {
+      var productData       = clone(SAMPLE_PRODUCT_DATA);
+      var entryShipmentData = clone(SAMPLE_ENTRY_SHIPMENT_DATA);
+      var exitShipmentData  = clone(SAMPLE_EXIT_SHIPMENT_DATA);
+
+      productData.sourceShipment = entryShipmentData;
+
+      // TODO:
+      // this method depends on updating the shipment's status
+      // we should make it more independent.
+      // for the time being, just ensure the shipment exists
+      var exitShipment = new ASSETS.cebola.models.Shipment(exitShipmentData);
+
+      exitShipment.setStatus(
+        makeCebola.constants.SHIPMENT_STATUSES.SCHEDULED,
+        'TestReason'
+      );
+
+      return Bluebird.all([
+        exitShipment.save(),
+        operationCtrl.registerCorrection(productData, 30)
+      ])
+      .then((results) => {
+        return allocationCtrl.allocateExit(productData, -30, exitShipment)
+      })
+      .then((exitAllocation) => {
+        return allocationCtrl.effectivateExit(exitAllocation, -10);
+      })
+      .then((exitAllocation) => {
+        // console.log(exitAllocation);
+        exitAllocation.allocatedQuantity.should.eql(-30);
+        exitAllocation.quantity.should.eql(-20);
+        exitAllocation.effectivatedQuantity.should.eql(-10);
+      })
+    });
+
+    it('should refuse to create an exit operation related to the exitAllocation if there are not enough items in stock', function () {
+      var productData       = clone(SAMPLE_PRODUCT_DATA);
+      var entryShipmentData = clone(SAMPLE_ENTRY_SHIPMENT_DATA);
+      var exitShipmentData  = clone(SAMPLE_EXIT_SHIPMENT_DATA);
+
+      productData.sourceShipment = entryShipmentData;
+
+      // TODO:
+      // this method depends on updating the shipment's status
+      // we should make it more independent.
+      // for the time being, just ensure the shipment exists
+      var exitShipment = new ASSETS.cebola.models.Shipment(exitShipmentData);
+
+      exitShipment.setStatus(
+        makeCebola.constants.SHIPMENT_STATUSES.SCHEDULED,
+        'TestReason'
+      );
+
+      var _exitAllocation
+
+      return Bluebird.all([
+        exitShipment.save(),
+        operationCtrl.registerCorrection(productData, 30)
+      ])
+      .then((results) => {
+        // first allocate
+        return allocationCtrl.allocateExit(productData, -30, exitShipment)
+      })
+      .then((exitAllocation) => {
+        _exitAllocation = exitAllocation;
+
+        // then correct and reduce quantity in stock
+        return operationCtrl.registerCorrection(productData, -25);
+      })
+      .then((correctionOperation) => {
+        // then attempt to effectivate
+        return allocationCtrl.effectivateExit(_exitAllocation, -10);
+      })
+      .then(aux.errorExpected, (err) => {
+        err.should.be.instanceof(makeCebola.errors.ProductNotAvailable);
+      });
     });
   });
 });

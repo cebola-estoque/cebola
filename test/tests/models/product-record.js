@@ -32,7 +32,7 @@ describe('ProductRecord', function () {
     return aux.teardown();
   });
 
-  describe.only('ProductRecord static methods', function () {
+  describe('ProductRecord static methods', function () {
 
     describe('#normalizeExpiryDate(date)', function () {
       it('should return a date that is at the last of the given date', function () {

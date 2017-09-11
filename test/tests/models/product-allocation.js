@@ -65,7 +65,8 @@ describe('ProductAllocation', function () {
     it('should require allocatedQuantity to match the allocation type: entry > 0', function () {
       var allocation = new ProductAllocation({
         product: product,
-        allocatedQuantity: -40
+        allocatedQuantity: -40,
+        type: 'entry'
       });
 
       allocation.setStatus(
@@ -73,7 +74,8 @@ describe('ProductAllocation', function () {
         'TestReason'
       );
 
-      allocation.setShipment(entryShipment);
+      allocation.set('shipment', entryShipment);
+      allocation.set('scheduledFor', entryShipment.scheduledFor);
 
       return allocation.save()
         .then(aux.errorExpected, (err) => {
@@ -84,7 +86,8 @@ describe('ProductAllocation', function () {
     it('should require allocatedQuantity to match the allocation type: exit < 0', function () {
       var allocation = new ProductAllocation({
         product: product,
-        allocatedQuantity: 40
+        allocatedQuantity: 40,
+        type: 'exit',
       });
 
       allocation.setStatus(
@@ -92,7 +95,8 @@ describe('ProductAllocation', function () {
         'TestReason'
       );
 
-      allocation.setShipment(exitShipment);
+      allocation.set('shipment', exitShipment);
+      allocation.set('scheduledFor', exitShipment.scheduledFor);
 
       return allocation.save()
         .then(aux.errorExpected, (err) => {
@@ -104,6 +108,7 @@ describe('ProductAllocation', function () {
       var allocation = new ProductAllocation({
         product: product,
         allocatedQuantity: 40,
+        type: 'entry',
       });
 
       allocation.setStatus(
@@ -111,7 +116,8 @@ describe('ProductAllocation', function () {
         'TestReason'
       );
 
-      allocation.setShipment(entryShipment);
+      allocation.set('shipment', entryShipment);
+      allocation.set('scheduledFor', entryShipment.scheduledFor);
 
       return allocation.save().then((allocation) => {
         allocation.allocatedQuantity.should.equal(40);
@@ -126,6 +132,7 @@ describe('ProductAllocation', function () {
       var allocation = new ProductAllocation({
         product: product,
         allocatedQuantity: 40,
+        type: 'entry',
       });
 
       allocation.setStatus(
@@ -133,7 +140,8 @@ describe('ProductAllocation', function () {
         'TestReason'
       );
 
-      allocation.setShipment(entryShipment);
+      allocation.set('shipment', entryShipment);
+      allocation.set('scheduledFor', entryShipment.scheduledFor);
 
       return allocation.save().then((allocation) => {
         allocation.allocatedQuantity.should.equal(40);
@@ -155,6 +163,7 @@ describe('ProductAllocation', function () {
       var allocation = new ProductAllocation({
         product: product,
         allocatedQuantity: 40,
+        type: 'entry',
       });
 
       allocation.setStatus(
@@ -162,7 +171,8 @@ describe('ProductAllocation', function () {
         'TestReason'
       );
 
-      allocation.setShipment(entryShipment);
+      allocation.set('shipment', entryShipment);
+      allocation.set('scheduledFor', entryShipment.scheduledFor);
 
       return allocation.save().then((allocation) => {
         allocation.allocatedQuantity.should.equal(40);
