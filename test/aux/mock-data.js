@@ -1,28 +1,29 @@
 // third-party
 const moment = require('moment');
+const mongoose = require('mongoose');
 
 exports.productModels = [
   {
-    _id: 'product-model-1',
+    _id: mongoose.Types.ObjectId().toString(),
     description: 'Product model 1'
   },
   {
-    _id: 'product-model-2',
+    _id: mongoose.Types.ObjectId().toString(),
     description: 'Product model 2'
   },
   {
-    _id: 'product-model-3',
+    _id: mongoose.Types.ObjectId().toString(),
     description: 'Product model 4'
   },
   {
-    _id: 'product-model-4',
+    _id: mongoose.Types.ObjectId().toString(),
     description: 'Product model 4'
   },
 ];
 
 exports.organizations = [
   {
-    _id: 'supplier-1',
+    _id: mongoose.Types.ObjectId().toString(),
     name: 'Supplier` 1',
     roles: ['supplier'],
     document: {
@@ -31,7 +32,7 @@ exports.organizations = [
     }
   },
   {
-    _id: 'supplier-2',
+    _id: mongoose.Types.ObjectId().toString(),
     name: 'Supplier 2',
     roles: ['supplier'],
     document: {
@@ -40,7 +41,7 @@ exports.organizations = [
     }
   },
   {
-    _id: 'receiver-1',
+    _id: mongoose.Types.ObjectId().toString(),
     name: 'Receiver 1',
     roles: ['Receiver'],
     document: {
@@ -49,7 +50,7 @@ exports.organizations = [
     }
   },
   {
-    _id: 'receiver-2',
+    _id: mongoose.Types.ObjectId().toString(),
     name: 'Receiver 2',
     roles: ['Receiver'],
     document: {
@@ -64,25 +65,25 @@ exports.receivers = exports.organizations.slice(2, 4);
 
 exports.shipments = [
   {
-    _id: 'entry-1',
+    _id: mongoose.Types.ObjectId().toString(),
     type: 'entry',
     supplier: exports.suppliers[0],
     scheduledFor: moment().add(1, 'day').toDate(),
   },
   {
-    _id: 'entry-2',
+    _id: mongoose.Types.ObjectId().toString(),
     type: 'entry',
     supplier: exports.suppliers[0],
     scheduledFor: moment().add(3, 'day').toDate(),
   },
   {
-    _id: 'exit-1',
+    _id: mongoose.Types.ObjectId().toString(),
     type: 'exit',
     receiver: exports.receivers[0],
     scheduledFor: moment().add(1, 'day').toDate(),
   },
   {
-    _id: 'exit-2',
+    _id: mongoose.Types.ObjectId().toString(),
     type: 'exit',
     receiver: exports.receivers[0],
     scheduledFor: moment().add(3, 'day').toDate(),
