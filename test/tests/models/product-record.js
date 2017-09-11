@@ -12,6 +12,8 @@ describe('ProductRecord', function () {
 
   var ASSETS;
   var ProductRecord;
+  var ProductAllocation;
+  var ProductOperation;
 
   beforeEach(function () {
     return aux.setup()
@@ -25,6 +27,8 @@ describe('ProductRecord', function () {
         ASSETS.cebola = cebola;
 
         ProductRecord = ASSETS.cebola.models.ProductRecord;
+        ProductAllocation = ASSETS.cebola.models.ProductAllocation;
+        ProductOperation = ASSETS.cebola.models.ProductOperation;
       });
   });
 
@@ -75,6 +79,7 @@ describe('ProductRecord', function () {
         measureUnit: 'KG',
         sourceShipment: {
           _id: 'shipment-12399129',
+          number: 1,
         }
       }
     };

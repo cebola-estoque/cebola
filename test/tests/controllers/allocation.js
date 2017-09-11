@@ -159,7 +159,7 @@ describe('allocationCtrl', function () {
 
       return shipment.save()
         .then((shipment) => {
-          return allocationCtrl.allocateEntry(productData, 30, shipmentData)
+          return allocationCtrl.allocateEntry(productData, 30, shipment)
         })
         .then((entryAllocation) => {
           return allocationCtrl.effectivateEntry(entryAllocation, 10);

@@ -25,17 +25,20 @@ describe('ProductAllocation', function () {
     measureUnit: 'KG',
     sourceShipment: {
       _id: 'shipment-123123',
+      number: 3,
     }
   };
 
   var entryShipment = {
     _id: 'some-entry-shipment-id',
+    number: 1,
     type: 'entry',
     scheduledFor: moment(product.expiry).subtract(1, 'day').toDate(),
   };
 
   var exitShipment = {
     _id: 'some-exit-shipment-id',
+    number: 2,
     type: 'exit',
     scheduledFor: moment(product.expiry).subtract(1, 'day').toDate(),
   };

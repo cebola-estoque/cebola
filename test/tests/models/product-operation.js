@@ -45,6 +45,7 @@ describe('ProductOperation', function () {
       measureUnit: 'KG',
       sourceShipment: {
         _id: 'shipment-123123',
+        number: 1,
       }
     },
     status: {
