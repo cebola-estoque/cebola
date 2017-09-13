@@ -69,23 +69,37 @@ describe('inventoryCtrl.summary(query, filter, sort, options)', function () {
       product1Data.sourceShipment = entryShipmentData;
 
       let product0Query = {
-        'product.model._id': product0Data.model._id,
+        'product.model._id': makeCebola.util.normalizeObjectId(product0Data.model._id),
         'product.expiry': ASSETS.cebola.models.ProductRecord.normalizeExpiryDate(product0Data.expiry),
         'product.measureUnit': ASSETS.cebola.models.ProductRecord.normalizeMeasureUnit(product0Data.measureUnit),
-        'product.sourceShipment._id': product0Data.sourceShipment._id,
+        'product.sourceShipment._id': makeCebola.util.normalizeObjectId(product0Data.sourceShipment._id),
       };
 
-      return Bluebird.all([
-        operationCtrl.registerEntry(product0Data, 100),
-        operationCtrl.registerEntry(product0Data, 150),
-        operationCtrl.registerEntry(product0Data, 200),
+      var entryShipment = new ASSETS.cebola.models.Shipment(entryShipmentData);
+      entryShipment.setStatus('scheduled', 'TestReason');
 
-        operationCtrl.registerEntry(product1Data, 300),
+      var productModel0 = new ASSETS.cebola.models.ProductModel(product0Data.model);
+      var productModel1 = new ASSETS.cebola.models.ProductModel(product1Data.model);
+
+      return Bluebird.all([
+        entryShipment.save(),
+        productModel0.save(),
+        productModel1.save(),
       ])
+      .then(() => {
+        return Bluebird.all([
+          operationCtrl.registerEntry(product0Data, 100),
+          operationCtrl.registerEntry(product0Data, 150),
+          operationCtrl.registerEntry(product0Data, 200),
+
+          operationCtrl.registerEntry(product1Data, 300),
+        ])
+      })
       .then((entryOperations) => {
         return inventoryCtrl.summary(product0Query);
       })
       .then((summary) => {
+        
         summary.length.should.eql(1);
 
         summary[0].exited.should.eql(0);
@@ -106,7 +120,8 @@ describe('inventoryCtrl.summary(query, filter, sort, options)', function () {
         summary[0].exited.should.eql(-150);
         summary[0].entered.should.eql(450);
         summary[0].inStock.should.eql(300);
-      });
+      })
+      .catch(aux.logError);
 
     });
   });

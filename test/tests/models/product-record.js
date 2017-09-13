@@ -72,13 +72,13 @@ describe('ProductRecord', function () {
       type: 'entry',
       product: {
         model: {
-          _id: 'product-model-129399',
+          _id: mongoose.Types.ObjectId(),
           description: 'Some product model',
         },
         expiry: new Date(),
         measureUnit: 'KG',
         sourceShipment: {
-          _id: 'shipment-12399129',
+          _id: mongoose.Types.ObjectId(),
           number: 1,
         }
       }

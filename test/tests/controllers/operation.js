@@ -61,10 +61,10 @@ describe('operationCtrl', function () {
       .then((operation) => {
         operation.kind.should.eql('ProductOperation');
         operation.type.should.eql('entry');
-        operation.product.model._id.should.eql(productData.model._id);
+        operation.product.model._id.toString().should.eql(productData.model._id);
         operation.product.model.description.should.eql(productData.model.description);
         operation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
-        operation.product.sourceShipment._id.should.eql(shipmentData._id);
+        operation.product.sourceShipment._id.toString().should.eql(shipmentData._id);
         operation.quantity.should.eql(10);
       });
     });
@@ -80,7 +80,7 @@ describe('operationCtrl', function () {
         10
       )
       .then((operation) => {
-        operation.product.sourceShipment._id.should.eql(shipmentData._id);
+        operation.product.sourceShipment._id.toString().should.eql(shipmentData._id);
       });
     });
   });
@@ -109,10 +109,10 @@ describe('operationCtrl', function () {
         operation.kind.should.eql('ProductOperation');
         operation.type.should.eql('exit');
         operation.category.should.eql('normal');
-        operation.product.model._id.should.eql(productData.model._id);
+        operation.product.model._id.toString().should.eql(productData.model._id);
         operation.product.model.description.should.eql(productData.model.description);
         operation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
-        operation.product.sourceShipment._id.should.eql(entryShipmentData._id);
+        operation.product.sourceShipment._id.toString().should.eql(entryShipmentData._id);
         operation.quantity.should.eql(-10);
       });
     });
@@ -163,10 +163,10 @@ describe('operationCtrl', function () {
         operation.kind.should.eql('ProductOperation');
         operation.type.should.eql('exit');
         operation.category.should.eql('loss');
-        operation.product.model._id.should.eql(productData.model._id);
+        operation.product.model._id.toString().should.eql(productData.model._id);
         operation.product.model.description.should.eql(productData.model.description);
         operation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
-        operation.product.sourceShipment._id.should.eql(entryShipmentData._id);
+        operation.product.sourceShipment._id.toString().should.eql(entryShipmentData._id);
         operation.quantity.should.eql(-10);
       });
     });
@@ -189,10 +189,10 @@ describe('operationCtrl', function () {
         operation.kind.should.eql('ProductOperation');
         operation.type.should.eql('entry');
         operation.category.should.eql('correction');
-        operation.product.model._id.should.eql(productData.model._id);
+        operation.product.model._id.toString().should.eql(productData.model._id);
         operation.product.model.description.should.eql(productData.model.description);
         operation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
-        operation.product.sourceShipment._id.should.eql(entryShipmentData._id);
+        operation.product.sourceShipment._id.toString().should.eql(entryShipmentData._id);
         operation.quantity.should.eql(10);
       });
     });
@@ -218,10 +218,10 @@ describe('operationCtrl', function () {
         operation.kind.should.eql('ProductOperation');
         operation.type.should.eql('exit');
         operation.category.should.eql('correction');
-        operation.product.model._id.should.eql(productData.model._id);
+        operation.product.model._id.toString().should.eql(productData.model._id);
         operation.product.model.description.should.eql(productData.model.description);
         operation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
-        operation.product.sourceShipment._id.should.eql(entryShipmentData._id);
+        operation.product.sourceShipment._id.toString().should.eql(entryShipmentData._id);
         operation.quantity.should.eql(-10);
       });
     });

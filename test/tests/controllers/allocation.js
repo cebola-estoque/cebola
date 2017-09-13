@@ -58,13 +58,13 @@ describe('allocationCtrl', function () {
         .then((allocation) => {
           allocation.kind.should.eql('ProductAllocation');
           allocation.type.should.eql('entry');
-          allocation.product.model._id.should.eql(productData.model._id);
+          allocation.product.model._id.toString().should.eql(productData.model._id);
           allocation.product.model.description.should.eql(productData.model.description);
           allocation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
-          allocation.product.sourceShipment._id.should.eql(shipmentData._id);
+          allocation.product.sourceShipment._id.toString().should.eql(shipmentData._id);
           allocation.quantity.should.eql(30);
           allocation.scheduledFor.should.eql(shipmentData.scheduledFor);
-          allocation.shipment._id.should.eql(shipmentData._id);
+          allocation.shipment._id.toString().should.eql(shipmentData._id);
         });
     });
   });
@@ -84,13 +84,13 @@ describe('allocationCtrl', function () {
         .then((allocation) => {
           allocation.kind.should.eql('ProductAllocation');
           allocation.type.should.eql('exit');
-          allocation.product.model._id.should.eql(productData.model._id);
+          allocation.product.model._id.toString().should.eql(productData.model._id);
           allocation.product.model.description.should.eql(productData.model.description);
           allocation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
-          allocation.product.sourceShipment._id.should.eql(entryShipmentData._id);
+          allocation.product.sourceShipment._id.toString().should.eql(entryShipmentData._id);
           allocation.quantity.should.eql(-30);
           allocation.scheduledFor.should.eql(exitShipmentData.scheduledFor);
-          allocation.shipment._id.should.eql(exitShipmentData._id);
+          allocation.shipment._id.toString().should.eql(exitShipmentData._id);
         })
         .catch((err) => {
           console.log(err);

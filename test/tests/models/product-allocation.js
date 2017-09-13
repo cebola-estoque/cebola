@@ -18,26 +18,26 @@ describe('ProductAllocation', function () {
    */
   var product = {
     model: {
-      _id: 'product-model-id-123',
+      _id: mongoose.Types.ObjectId(),
       description: 'Some product',
     },
     expiry: moment().add(3, 'days').toDate(),
     measureUnit: 'KG',
     sourceShipment: {
-      _id: 'shipment-123123',
+      _id: mongoose.Types.ObjectId(),
       number: 3,
     }
   };
 
   var entryShipment = {
-    _id: 'some-entry-shipment-id',
+    _id: mongoose.Types.ObjectId(),
     number: 1,
     type: 'entry',
     scheduledFor: moment(product.expiry).subtract(1, 'day').toDate(),
   };
 
   var exitShipment = {
-    _id: 'some-exit-shipment-id',
+    _id: mongoose.Types.ObjectId(),
     number: 2,
     type: 'exit',
     scheduledFor: moment(product.expiry).subtract(1, 'day').toDate(),

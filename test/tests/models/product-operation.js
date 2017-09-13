@@ -38,13 +38,13 @@ describe('ProductOperation', function () {
     quantity: 10,
     product: {
       model: {
-        _id: 'product-model-id-123',
+        _id: mongoose.Types.ObjectId(),
         description: 'Some product',
       },
       expiry: new Date(),
       measureUnit: 'KG',
       sourceShipment: {
-        _id: 'shipment-123123',
+        _id: mongoose.Types.ObjectId(),
         number: 1,
       }
     },
