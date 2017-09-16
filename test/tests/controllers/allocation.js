@@ -157,18 +157,28 @@ describe('allocationCtrl', function () {
         'TestReason'
       );
 
+      var _entryAllocation;
+
       return shipment.save()
         .then((shipment) => {
           return allocationCtrl.allocateEntry(productData, 30, shipment)
         })
         .then((entryAllocation) => {
+          _entryAllocation = entryAllocation;
           return allocationCtrl.effectivateEntry(entryAllocation, 10);
         })
-        .then((entryAllocation) => {
-          // console.log(entryAllocation);
-          entryAllocation.allocatedQuantity.should.eql(30);
-          entryAllocation.quantity.should.eql(20);
-          entryAllocation.effectivatedQuantity.should.eql(10);
+        .then((entryOperation) => {
+          entryOperation.quantity.should.eql(10);
+          entryOperation.sourceAllocation._id.toString().should.eql(_entryAllocation._id.toString());
+          entryOperation.sourceAllocation.number.should.eql(_entryAllocation.number);
+
+          return allocationCtrl.getById(_entryAllocation._id);
+        })
+        .then((updatedEntryAllocation) => {
+          // console.log(updatedEntryAllocation);
+          updatedEntryAllocation.allocatedQuantity.should.eql(30);
+          updatedEntryAllocation.quantity.should.eql(20);
+          updatedEntryAllocation.effectivatedQuantity.should.eql(10);
 
           // console.log(operation);
         })
@@ -198,6 +208,8 @@ describe('allocationCtrl', function () {
         'TestReason'
       );
 
+      var _exitAllocation;
+
       return Bluebird.all([
         exitShipment.save(),
         operationCtrl.registerCorrection(productData, 30)
@@ -206,13 +218,22 @@ describe('allocationCtrl', function () {
         return allocationCtrl.allocateExit(productData, -30, exitShipment)
       })
       .then((exitAllocation) => {
+        _exitAllocation = exitAllocation;
+
         return allocationCtrl.effectivateExit(exitAllocation, -10);
       })
-      .then((exitAllocation) => {
-        // console.log(exitAllocation);
-        exitAllocation.allocatedQuantity.should.eql(-30);
-        exitAllocation.quantity.should.eql(-20);
-        exitAllocation.effectivatedQuantity.should.eql(-10);
+      .then((exitOperation) => {
+        exitOperation.quantity.should.eql(-10);
+        exitOperation.sourceAllocation._id.toString().should.eql(_exitAllocation._id.toString());
+        exitOperation.sourceAllocation.number.should.eql(_exitAllocation.number);
+
+        return allocationCtrl.getById(_exitAllocation._id);
+      })
+      .then((updatedExitAllocation) => {
+        // console.log(updatedExitAllocation);
+        updatedExitAllocation.allocatedQuantity.should.eql(-30);
+        updatedExitAllocation.quantity.should.eql(-20);
+        updatedExitAllocation.effectivatedQuantity.should.eql(-10);
       })
     });
 
