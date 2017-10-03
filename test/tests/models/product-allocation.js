@@ -26,6 +26,10 @@ describe('ProductAllocation', function () {
     sourceShipment: {
       _id: mongoose.Types.ObjectId(),
       number: 3,
+    },
+    unitPrice: {
+      value: 1050,
+      currency: 'BRL',
     }
   };
 

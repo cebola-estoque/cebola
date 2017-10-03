@@ -37,6 +37,10 @@ describe('operationCtrl', function () {
     model: aux.mockData.productModels[0],
     expiry: moment().add(7, 'days').toDate(),
     measureUnit: 'kg',
+    unitPrice: {
+      value: 1050,
+      currency: 'BRL',
+    }
   };
 
   const SAMPLE_ENTRY_SHIPMENT_DATA = aux.mockData.shipments.find(s => {
@@ -65,6 +69,8 @@ describe('operationCtrl', function () {
         operation.product.model.description.should.eql(productData.model.description);
         operation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
         operation.product.sourceShipment._id.toString().should.eql(shipmentData._id);
+        operation.product.unitPrice.value.should.eql(productData.unitPrice.value);
+        operation.product.unitPrice.currency.should.eql(productData.unitPrice.currency);
         operation.quantity.should.eql(10);
       });
     });
@@ -113,6 +119,8 @@ describe('operationCtrl', function () {
         operation.product.model.description.should.eql(productData.model.description);
         operation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
         operation.product.sourceShipment._id.toString().should.eql(entryShipmentData._id);
+        operation.product.unitPrice.value.should.eql(productData.unitPrice.value);
+        operation.product.unitPrice.currency.should.eql(productData.unitPrice.currency);
         operation.quantity.should.eql(-10);
       });
     });
@@ -167,6 +175,8 @@ describe('operationCtrl', function () {
         operation.product.model.description.should.eql(productData.model.description);
         operation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
         operation.product.sourceShipment._id.toString().should.eql(entryShipmentData._id);
+        operation.product.unitPrice.value.should.eql(productData.unitPrice.value);
+        operation.product.unitPrice.currency.should.eql(productData.unitPrice.currency);
         operation.quantity.should.eql(-10);
       });
     });
@@ -193,6 +203,8 @@ describe('operationCtrl', function () {
         operation.product.model.description.should.eql(productData.model.description);
         operation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
         operation.product.sourceShipment._id.toString().should.eql(entryShipmentData._id);
+        operation.product.unitPrice.value.should.eql(productData.unitPrice.value);
+        operation.product.unitPrice.currency.should.eql(productData.unitPrice.currency);
         operation.quantity.should.eql(10);
       });
     });
@@ -222,6 +234,8 @@ describe('operationCtrl', function () {
         operation.product.model.description.should.eql(productData.model.description);
         operation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
         operation.product.sourceShipment._id.toString().should.eql(entryShipmentData._id);
+        operation.product.unitPrice.value.should.eql(productData.unitPrice.value);
+        operation.product.unitPrice.currency.should.eql(productData.unitPrice.currency);
         operation.quantity.should.eql(-10);
       });
     });

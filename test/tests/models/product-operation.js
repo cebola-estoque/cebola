@@ -46,6 +46,10 @@ describe('ProductOperation', function () {
       sourceShipment: {
         _id: mongoose.Types.ObjectId(),
         number: 1,
+      },
+      unitPrice: {
+        value: 1050,
+        currency: 'BRL',
       }
     },
     status: {

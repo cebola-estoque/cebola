@@ -37,6 +37,10 @@ describe('recordCtrl', function () {
     model: aux.mockData.productModels[0],
     expiry: moment().add(7, 'days').toDate(),
     measureUnit: 'kg',
+    unitPrice: {
+      value: 1050,
+      currency: 'BRL',
+    }
   };
 
   const SAMPLE_ENTRY_SHIPMENT_DATA = aux.mockData.shipments.find(s => {

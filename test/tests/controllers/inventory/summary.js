@@ -41,12 +41,20 @@ describe('inventoryCtrl.summary(query, filter, sort, options)', function () {
     model: aux.mockData.productModels[0],
     expiry: moment().add(7, 'days').toDate(),
     measureUnit: 'kg',
+    unitPrice: {
+      value: 1050,
+      currency: 'BRL',
+    }
   };
 
   const SAMPLE_PRODUCT_1_DATA = {
     model: aux.mockData.productModels[1],
     expiry: moment().add(7, 'days').toDate(),
     measureUnit: 'kg',
+    unitPrice: {
+      value: 2550,
+      currency: 'BRL',
+    }
   };
 
   const SAMPLE_ENTRY_SHIPMENT_DATA = aux.mockData.shipments.find(s => {
@@ -105,6 +113,14 @@ describe('inventoryCtrl.summary(query, filter, sort, options)', function () {
         summary[0].exited.should.eql(0);
         summary[0].entered.should.eql(450);
         summary[0].inStock.should.eql(450);
+
+        // should correspond to the product0's summary, as the query is for the product0
+        summary[0].product.model._id.toString().should.eql(product0Data.model._id);
+        summary[0].product.expiry.should.eql(makeCebola.util.normalizeExpiryDate(product0Data.expiry));
+        summary[0].product.measureUnit.should.eql(makeCebola.util.normalizeMeasureUnit(product0Data.measureUnit));
+        summary[0].product.sourceShipment._id.toString().should.eql(product0Data.sourceShipment._id.toString());
+        summary[0].product.unitPrice.value.should.eql(product0Data.unitPrice.value);
+        summary[0].product.unitPrice.currency.should.eql(product0Data.unitPrice.currency);
 
         return Bluebird.all([
           operationCtrl.registerExit(product0Data, -50),

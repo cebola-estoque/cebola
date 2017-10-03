@@ -39,6 +39,10 @@ describe('allocationCtrl', function () {
     model: aux.mockData.productModels[0],
     expiry: moment().add(7, 'days').toDate(),
     measureUnit: 'kg',
+    unitPrice: {
+      value: 1050,
+      currency: 'BRL',
+    }
   };
 
   const SAMPLE_ENTRY_SHIPMENT_DATA = aux.mockData.shipments.find(s => {
@@ -62,6 +66,8 @@ describe('allocationCtrl', function () {
           allocation.product.model.description.should.eql(productData.model.description);
           allocation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
           allocation.product.sourceShipment._id.toString().should.eql(shipmentData._id);
+          allocation.product.unitPrice.value.should.eql(productData.unitPrice.value);
+          allocation.product.unitPrice.currency.should.eql(productData.unitPrice.currency);
           allocation.quantity.should.eql(30);
           allocation.scheduledFor.should.eql(shipmentData.scheduledFor);
           allocation.shipment._id.toString().should.eql(shipmentData._id);
@@ -88,6 +94,8 @@ describe('allocationCtrl', function () {
           allocation.product.model.description.should.eql(productData.model.description);
           allocation.product.expiry.should.eql(moment(productData.expiry).endOf('day').toDate());
           allocation.product.sourceShipment._id.toString().should.eql(entryShipmentData._id);
+          allocation.product.unitPrice.value.should.eql(productData.unitPrice.value);
+          allocation.product.unitPrice.currency.should.eql(productData.unitPrice.currency);
           allocation.quantity.should.eql(-30);
           allocation.scheduledFor.should.eql(exitShipmentData.scheduledFor);
           allocation.shipment._id.toString().should.eql(exitShipmentData._id);
@@ -160,32 +168,36 @@ describe('allocationCtrl', function () {
       var _entryAllocation;
 
       return shipment.save()
-        .then((shipment) => {
-          return allocationCtrl.allocateEntry(productData, 30, shipment)
-        })
-        .then((entryAllocation) => {
-          _entryAllocation = entryAllocation;
-          return allocationCtrl.effectivateEntry(entryAllocation, 10);
-        })
-        .then((entryOperation) => {
-          entryOperation.quantity.should.eql(10);
-          entryOperation.sourceAllocation._id.toString().should.eql(_entryAllocation._id.toString());
-          entryOperation.sourceAllocation.number.should.eql(_entryAllocation.number);
+      .then((shipment) => {
+        return allocationCtrl.allocateEntry(productData, 30, shipment)
+      })
+      .then((entryAllocation) => {
+        _entryAllocation = entryAllocation;
+        return allocationCtrl.effectivateEntry(entryAllocation, 10);
+      })
+      .then((entryOperation) => {
+        entryOperation.quantity.should.eql(10);
+        entryOperation.sourceAllocation._id.toString().should.eql(_entryAllocation._id.toString());
+        entryOperation.sourceAllocation.number.should.eql(_entryAllocation.number);
 
-          return allocationCtrl.getById(_entryAllocation._id);
-        })
-        .then((updatedEntryAllocation) => {
-          // console.log(updatedEntryAllocation);
-          updatedEntryAllocation.allocatedQuantity.should.eql(30);
-          updatedEntryAllocation.quantity.should.eql(20);
-          updatedEntryAllocation.effectivatedQuantity.should.eql(10);
+        // resulting operation should have the product's unitPrice as well
+        entryOperation.product.unitPrice.value.should.eql(productData.unitPrice.value);
+        entryOperation.product.unitPrice.currency.should.eql(productData.unitPrice.currency);
 
-          // console.log(operation);
-        })
-        .catch((err) => {
-          console.warn(err);
-          throw err;
-        });
+        return allocationCtrl.getById(_entryAllocation._id);
+      })
+      .then((updatedEntryAllocation) => {
+        // console.log(updatedEntryAllocation);
+        updatedEntryAllocation.allocatedQuantity.should.eql(30);
+        updatedEntryAllocation.quantity.should.eql(20);
+        updatedEntryAllocation.effectivatedQuantity.should.eql(10);
+
+        // console.log(operation);
+      })
+      .catch((err) => {
+        console.warn(err);
+        throw err;
+      });
     });
   });
 
@@ -226,6 +238,10 @@ describe('allocationCtrl', function () {
         exitOperation.quantity.should.eql(-10);
         exitOperation.sourceAllocation._id.toString().should.eql(_exitAllocation._id.toString());
         exitOperation.sourceAllocation.number.should.eql(_exitAllocation.number);
+
+        // resulting operation should have the product's unitPrice as well
+        exitOperation.product.unitPrice.value.should.eql(productData.unitPrice.value);
+        exitOperation.product.unitPrice.currency.should.eql(productData.unitPrice.currency);
 
         return allocationCtrl.getById(_exitAllocation._id);
       })

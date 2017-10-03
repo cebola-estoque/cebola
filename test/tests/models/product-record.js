@@ -80,6 +80,10 @@ describe('ProductRecord', function () {
         sourceShipment: {
           _id: mongoose.Types.ObjectId(),
           number: 1,
+        },
+        unitPrice: {
+          value: 1050, // price is given in cents
+          currency: 'BRL',
         }
       }
     };
@@ -148,6 +152,27 @@ describe('ProductRecord', function () {
       });
     });
 
+    it('should require product.unitPrice.value', function () {
+      var recordData = Object.assign({}, SAMPLE_RECORD_DATA);
+      delete recordData.product.unitPrice.value;
+
+      var record = new ProductRecord(recordData);
+
+      return record.save().then(aux.errorExpected, (err) => {
+        err.should.be.instanceof(mongoose.Error.ValidationError);
+      });
+    });
+
+    it('should require product.unitPrice.currency', function () {
+      var recordData = Object.assign({}, SAMPLE_RECORD_DATA);
+      delete recordData.product.unitPrice.currency;
+
+      var record = new ProductRecord(recordData);
+
+      return record.save().then(aux.errorExpected, (err) => {
+        err.should.be.instanceof(mongoose.Error.ValidationError);
+      });
+    });
   });
 
 });
