@@ -3,6 +3,7 @@ const should = require('should');
 const mongoose = require('mongoose');
 const Bluebird = require('bluebird');
 const moment   = require('moment');
+const clone    = require('clone');
 
 const aux = require('../../aux');
 
@@ -89,7 +90,7 @@ describe('ProductRecord', function () {
     };
 
     it('should store all product information', function () {
-      var recordData = Object.assign({}, SAMPLE_RECORD_DATA);
+      var recordData = clone(SAMPLE_RECORD_DATA);
       var record = new ProductRecord(recordData);
 
       return record.save().then((record) => {
@@ -109,7 +110,7 @@ describe('ProductRecord', function () {
     });
 
     it('should require product.model._id and product.model.description', function () {
-      var recordData = Object.assign({}, SAMPLE_RECORD_DATA);
+      var recordData = clone(SAMPLE_RECORD_DATA);
       delete recordData.product.model;
 
       var record = new ProductRecord(recordData);
@@ -120,7 +121,7 @@ describe('ProductRecord', function () {
     });
 
     it('should require product.expiry', function () {
-      var recordData = Object.assign({}, SAMPLE_RECORD_DATA);
+      var recordData = clone(SAMPLE_RECORD_DATA);
       delete recordData.product.expiry;
 
       var record = new ProductRecord(recordData);
@@ -131,7 +132,7 @@ describe('ProductRecord', function () {
     });
 
     it('should require product.measureUnit', function () {
-      var recordData = Object.assign({}, SAMPLE_RECORD_DATA);
+      var recordData = clone(SAMPLE_RECORD_DATA);
       delete recordData.product.measureUnit;
 
       var record = new ProductRecord(recordData);
@@ -142,7 +143,7 @@ describe('ProductRecord', function () {
     });
 
     it('should require product.sourceShipment._id', function () {
-      var recordData = Object.assign({}, SAMPLE_RECORD_DATA);
+      var recordData = clone(SAMPLE_RECORD_DATA);
       delete recordData.product.sourceShipment;
 
       var record = new ProductRecord(recordData);
@@ -152,19 +153,19 @@ describe('ProductRecord', function () {
       });
     });
 
-    it('should require product.unitPrice.value', function () {
-      var recordData = Object.assign({}, SAMPLE_RECORD_DATA);
+    it('should default product.unitPrice.value to 0', function () {
+      var recordData = clone(SAMPLE_RECORD_DATA);
       delete recordData.product.unitPrice.value;
 
       var record = new ProductRecord(recordData);
 
-      return record.save().then(aux.errorExpected, (err) => {
-        err.should.be.instanceof(mongoose.Error.ValidationError);
+      return record.save().then((record) => {
+        record.product.unitPrice.value.should.eql(0);
       });
     });
 
     it('should require product.unitPrice.currency', function () {
-      var recordData = Object.assign({}, SAMPLE_RECORD_DATA);
+      var recordData = clone(SAMPLE_RECORD_DATA);
       delete recordData.product.unitPrice.currency;
 
       var record = new ProductRecord(recordData);
